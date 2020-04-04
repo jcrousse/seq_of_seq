@@ -6,13 +6,15 @@ import seaborn as sns
 
 from data_reader import DataReader
 from preprocessing import simple_preprocess, simple_tokenize
+from baseline_tfidf.tfidf_svm import tfidf_svm
 
-n_test = 1000
+n_test = 10000
 
 test_text, test_labels = DataReader(0.5).take(n_test)
 
 accuracy_per_step = []
-steps = range(50, 1500, 50)
+accuracy_per_step_svm = []
+steps = range(50, 2000, 50)
 for n_obs in steps:
     texts, labels = DataReader(0.5).take(n_obs)
 
@@ -30,18 +32,25 @@ for n_obs in steps:
     tfidf_pos = TfidfModel(corpus_pos)
     tfidf_neg = TfidfModel(corpus_neg)
 
+    sklearn_model = tfidf_svm(texts, labels)
+
     predicted_labels = []
     for pos_val, neg_val in zip(tfidf_pos[corpus_test], tfidf_neg[corpus_test]):
         pos_tot = sum([e[1] for e in pos_val])
         neg_tot = sum([e[1] for e in neg_val])
         predicted_labels.append(1 if (pos_tot - neg_tot) > 0 else 0)
 
-    acc = accuracy_score(test_labels, predicted_labels)
-    print(f"accuracy with {n_obs} training examples:  {acc}")
-    accuracy_per_step.append(acc)
+    predicted_sklearn = sklearn_model.predict(test_text)
+    acc_sklearn = accuracy_score(test_labels, predicted_sklearn)
 
-df_plot = pd.DataFrame(data={'accuracy': accuracy_per_step, 'training_examples': list(steps)})
+    acc = accuracy_score(test_labels, predicted_labels)
+    print(f"accuracy with {n_obs} training examples. base:  {acc}, sklearn_svm: {acc_sklearn}")
+    accuracy_per_step.append(acc)
+    accuracy_per_step_svm.append(acc_sklearn)
+
+df_plot = pd.DataFrame(data={'base_model': accuracy_per_step, 'sk_svm': accuracy_per_step_svm, 'training_examples': list(steps)})
 
 sns.set()
-sns_plot = sns.relplot(data=df_plot, x='training_examples', y='accuracy', kind="line",)
+sns_plot = sns.relplot(data=pd.melt(df_plot, ['training_examples']), x='training_examples',
+                       y='value', hue='variable', kind="line")
 sns_plot.savefig("baseline_per_examples.png")
