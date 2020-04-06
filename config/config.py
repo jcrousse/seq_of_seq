@@ -11,5 +11,5 @@ TRAIN_SET = {
 
 TEST_SET = {
     1: TEST_POS_DIR,
-    0: TEST_POS_DIR
+    0: TEST_NEG_DIR
 }

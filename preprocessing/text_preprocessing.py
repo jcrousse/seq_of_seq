@@ -1,5 +1,8 @@
 import re
 import unidecode
+import spacy
+
+nlp = spacy.load('en_core_web_sm')
 
 
 def simple_preprocess(text):
@@ -13,3 +16,9 @@ def simple_tokenize(text):
     whitespace tokenization
     """
     return text.split(' ')
+
+
+def preprocess(text):
+    doc = nlp(simple_preprocess(text))
+    processed_tokens = [t.lemma_ for t in doc if not t.is_stop]
+    return " ".join(processed_tokens)
