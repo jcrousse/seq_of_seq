@@ -4,8 +4,8 @@ import seaborn as sns
 from tqdm import tqdm
 
 from data_reader import DataReader
-from preprocessing import simple_preprocess, simple_tokenize, preprocess
-from baseline_tfidf.tfidf_svm import tfidf_svm
+from preprocessing import simple_preprocess
+from models.baseline_tfidf.tfidf_svm import tfidf_svm
 
 n_test = 10000
 
