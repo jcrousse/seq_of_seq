@@ -2,7 +2,11 @@ import tensorflow as tf
 
 from data_reader import DataReader
 
-# todo now: tensorboard output. Comparison with GRU / LSTM
+# todo now:
+#  - Tensorboard output.
+#  - Comparison with GRU / LSTM  (for model in models, fit & eval)
+#  - Performance over sequence length (and more epochs)
+
 n_test = 10000
 n_train = 5000
 n_val = 2000
@@ -40,13 +44,17 @@ model = tf.keras.Sequential([
 
 model.summary()
 
+tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir='tensorboard_logs/1', histogram_freq=1)
+
 model.compile(optimizer='adam',
               loss=tf.losses.BinaryCrossentropy(from_logits=True),
-              metrics=['accuracy'])
+              metrics=['accuracy'],
+              )
 
 history = model.fit(train_batches,
                     validation_data=validation_batches,
-                    epochs=100)
+                    epochs=100,
+                    callbacks=[tensorboard_callback])
 
 results = model.evaluate(test_batches, verbose=2)
 
