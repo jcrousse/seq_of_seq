@@ -6,13 +6,13 @@ from preprocessing import split_sentences as sent_splitter
 
 
 # todo now:
-#  - sequence of sequence, yay \o/
+#  Attention or scoring + highlight html output in sos Model
 #  start by generating junk in text and ruining it?  Or start by Making SoS work to review attention?
 #  OR, try to get it to work with seq 500 by reproducing this:
 #  https://machinelearningmastery.com/sequence-classification-lstm-recurrent-neural-networks-python-keras/
 
-n_test = 1000
-n_train = 500
+n_test = 10000
+n_train = 5000
 n_val = 2000
 
 
@@ -40,7 +40,7 @@ def get_dataset(texts, labels, tokenizer, batch_size=256, seq_len=200, split_sen
     preprocessed_texts = [[w for sentences in sent_list for w in sentences] for sent_list in padded_sentences]
     padded_sequences = tf.keras.preprocessing.sequence.pad_sequences(preprocessed_texts, padding='post', maxlen=seq_len)
     dataset = tf.data.Dataset.from_tensor_slices((padded_sequences, labels))
-    batches = (dataset.shuffle(1000).padded_batch(batch_size, padded_shapes=([None], [])))
+    batches = (dataset.shuffle(1000).padded_batch(batch_size, padded_shapes=([None], [])))  # can we remove those brackets?
     return batches
 
 
@@ -106,7 +106,9 @@ experiments = {
     # 'bilstm_2000': {'model_name': 'bilstm', 'seq_len': 2000, 'epochs': 150},
     # 'lstm_1000': {'model_name': 'lstm', 'seq_len': 1000, 'epochs': 80},
     # 'fc_1000': {'seq_len': 500, 'epochs': 200},
-    'sos': {'model_name': 'sos', 'split_sentences': True, 'max_seq_len': 200, 'sent_len': 20}
+    # 'sos300_15': {'model_name': 'sos', 'split_sentences': True, 'seq_len': 300, 'sent_len': 15}
+    # 'bilstm_split_300_15': {'model_name': 'bilstm', 'split_sentences': True, 'seq_len': 300, 'sent_len': 15}
+    'sos1000_20': {'model_name': 'sos', 'split_sentences': True, 'seq_len': 1000, 'sent_len': 20}
 }
 
 for experiment in experiments:

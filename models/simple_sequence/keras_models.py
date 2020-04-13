@@ -32,17 +32,17 @@ def get_sos_model(**kwargs):
     embed_size = kwargs.get('embedding_size')
     seq_len = kwargs.get("seq_len")
     assert seq_len % sent_len == 0, "sequence length must be a multiple of sentence length"
+    sent_per_obs = seq_len // sent_len
 
-    lstm_units_1 = 4
+    lstm_units_1 = 16
     lstm_units_2 = kwargs.get('lstm_cells', 16)
 
     inputs = tf.keras.layers.Input(shape=(None,))
-    batch_size = kwargs.get("batch_size")
     embedded = tf.keras.layers.Embedding(kwargs.get('vocab_size'), embed_size)(inputs)
     reshaped = tf.reshape(embedded, (-1, sent_len, embed_size))
-    lstm_level1 = tf.keras.layers.LSTM(lstm_units_1)(reshaped)
-    reshaped_level2 = tf.reshape(lstm_level1, (batch_size, -1, lstm_units_1))
-    lstm_level2 = tf.keras.layers.LSTM(lstm_units_2)(reshaped_level2)
+    lstm_level1 = tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(lstm_units_1))(reshaped)
+    reshaped_level2 = tf.reshape(lstm_level1, (-1, sent_per_obs, lstm_units_1*2))
+    lstm_level2 = tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(lstm_units_2))(reshaped_level2)
     classifier = tf.keras.layers.Dense(1)(lstm_level2)
 
     model = tf.keras.Model(inputs=inputs, outputs=classifier)
