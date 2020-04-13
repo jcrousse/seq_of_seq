@@ -1,1 +1,1 @@
-from .text_preprocessing import simple_preprocess, simple_tokenize, preprocess
+from .text_preprocessing import simple_preprocess, simple_tokenize, preprocess, split_sentences
