@@ -36,8 +36,8 @@ class DataReader:
 
     def read_example(self, label):
         file = next(self.example_files[label])
-        with open(file, 'rb') as f:
-            return f.read().decode()
+        with open(file, 'r') as f:
+            return f.read()
 
     def udpate_idx(self):
         idx = self.current_idx
