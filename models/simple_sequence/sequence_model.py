@@ -6,8 +6,10 @@ from preprocessing import split_sentences as sent_splitter
 
 
 # todo now:
-#  Attention or scoring + highlight html output in sos Model
-#  start by generating junk in text and ruining it?  Or start by Making SoS work to review attention?
+#  Load saved model. Re-factor preprocessing pipeline to re-use for predict, incl. save tokenizer
+#  extract score value per sentence from saves model at predict
+#  html output
+#  Generate junk in text and ruining it?  Or start by Making SoS work to review attention?
 #  OR, try to get it to work with seq 500 by reproducing this:
 #  https://machinelearningmastery.com/sequence-classification-lstm-recurrent-neural-networks-python-keras/
 
@@ -40,7 +42,7 @@ def get_dataset(texts, labels, tokenizer, batch_size=256, seq_len=200, split_sen
     preprocessed_texts = [[w for sentences in sent_list for w in sentences] for sent_list in padded_sentences]
     padded_sequences = tf.keras.preprocessing.sequence.pad_sequences(preprocessed_texts, padding='post', maxlen=seq_len)
     dataset = tf.data.Dataset.from_tensor_slices((padded_sequences, labels))
-    batches = (dataset.shuffle(1000).padded_batch(batch_size, padded_shapes=([None], [])))  # can we remove those brackets?
+    batches = dataset.shuffle(1000).padded_batch(batch_size, padded_shapes=([None], []))
     return batches
 
 
@@ -73,8 +75,12 @@ def run_experiment(experiment_name, model_name='fully_connected', batch_size=256
 
     model.summary()
 
-    tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir='tensorboard_logs/' + str(experiment_name),
-                                                          histogram_freq=10)
+    tensorboard = tf.keras.callbacks.TensorBoard(log_dir='tensorboard_logs/' + str(experiment_name),
+                                                 histogram_freq=10)
+    save_model = tf.keras.callbacks.ModelCheckpoint('saved_models/' + experiment_name,
+                                                    save_best_only=True, monitor='val_accuracy')
+
+    early_stop = tf.keras.callbacks.EarlyStopping(monitor='val_accuracy', min_delta=0.01, patience=5)
 
     model.compile(optimizer='adam',
                   loss=tf.losses.BinaryCrossentropy(from_logits=True),
@@ -84,7 +90,7 @@ def run_experiment(experiment_name, model_name='fully_connected', batch_size=256
     _ = model.fit(datasets[0],
                   validation_data=datasets[1],
                   epochs=epochs,
-                  callbacks=[tensorboard_callback])
+                  callbacks=[tensorboard, save_model, early_stop])
 
     results = model.evaluate(datasets[2], verbose=2)
 
@@ -106,9 +112,9 @@ experiments = {
     # 'bilstm_2000': {'model_name': 'bilstm', 'seq_len': 2000, 'epochs': 150},
     # 'lstm_1000': {'model_name': 'lstm', 'seq_len': 1000, 'epochs': 80},
     # 'fc_1000': {'seq_len': 500, 'epochs': 200},
-    # 'sos300_15': {'model_name': 'sos', 'split_sentences': True, 'seq_len': 300, 'sent_len': 15}
-    # 'bilstm_split_300_15': {'model_name': 'bilstm', 'split_sentences': True, 'seq_len': 300, 'sent_len': 15}
-    'sos1000_20': {'model_name': 'sos', 'split_sentences': True, 'seq_len': 1000, 'sent_len': 20}
+    # 'sos300_15': {'model_name': 'sos', 'split_sentences': True, 'seq_len': 300, 'sent_len': 15},
+    # 'bilstm_split_300_15': {'model_name': 'bilstm', 'split_sentences': True, 'seq_len': 300, 'sent_len': 15},
+    'l_score300_15': {'model_name': 'l_score', 'split_sentences': True, 'seq_len': 300, 'sent_len': 15, 'epochs': 50},
 }
 
 for experiment in experiments:
