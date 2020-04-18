@@ -1,11 +1,15 @@
+from pathlib import Path
+import pickle
+
 import tensorflow as tf
 
 from data_reader import DataReader
 from models.simple_sequence.keras_models import model_map
-from preprocessing import split_sentences as sent_splitter
-
+from preprocessing import load_or_fit_tokenizer, get_dataset, get_padded_sequences
+from config.config import TB_LOGS, MODEL_DIR, MODEL_CONF
 
 # todo now:
+#  refactor model into a Class with save/load/overwrite (and cleanup directories), to avoid code duplication.
 #  Load saved model. Re-factor preprocessing pipeline to re-use for predict, incl. save tokenizer
 #  extract score value per sentence from saves model at predict
 #  html output
@@ -25,27 +29,6 @@ train_texts, train_labels = train_dr.take(n_train)
 val_texts, val_labels = train_dr.take(n_val)
 
 
-def get_dataset(texts, labels, tokenizer, batch_size=256, seq_len=200, split_sentence=False, sent_len=20):
-    if split_sentence:
-        sentences = [sent_splitter(t) for t in texts]
-
-        def sent_padding(s):
-            return tf.keras.preprocessing.sequence.pad_sequences(s, padding='post', maxlen=sent_len)
-    else:
-        sentences = [[t] for t in texts]
-
-        def sent_padding(s):
-            return s
-
-    tokenized_sentences = [tokenizer.texts_to_sequences(text) for text in sentences]
-    padded_sentences = [sent_padding(tokens) for tokens in tokenized_sentences]
-    preprocessed_texts = [[w for sentences in sent_list for w in sentences] for sent_list in padded_sentences]
-    padded_sequences = tf.keras.preprocessing.sequence.pad_sequences(preprocessed_texts, padding='post', maxlen=seq_len)
-    dataset = tf.data.Dataset.from_tensor_slices((padded_sequences, labels))
-    batches = dataset.shuffle(1000).padded_batch(batch_size, padded_shapes=([None], []))
-    return batches
-
-
 def run_experiment(experiment_name, model_name='fully_connected', batch_size=256, seq_len=200, vocab_size=10000,
                    epochs=100, embedding_size=16, split_sentences=False, sent_len=20, **kwargs):
     """
@@ -60,27 +43,33 @@ def run_experiment(experiment_name, model_name='fully_connected', batch_size=256
     :param sent_len: padded sentence length (if splitting by sentences)
     :return: None
     """
+
+    model_path = Path(MODEL_DIR) / experiment_name
+    model_path.mkdir(parents=True, exist_ok=True)
     kwargs = locals().copy()
     model = model_map[model_name](**kwargs)
+    with open(Path(model_path) / MODEL_CONF, 'wb') as f:
+        pickle.dump(kwargs, f)
 
-    tokenizer_train = tf.keras.preprocessing.text.Tokenizer(num_words=vocab_size,
-                                                            filters=r'!"#$%&()*+.,-/:;=?@[\]^_`{|}~ ')
-    tokenizer_train.fit_on_texts(train_texts)
+    texts = [train_texts,  val_texts, test_texts]
+    labels = [train_labels, val_labels, test_labels]
 
-    raw_data = [(train_texts, train_labels),  (val_texts, val_labels), (test_texts, test_labels)]
+    tokenizer = load_or_fit_tokenizer(model_path, vocab_size, corpus=train_texts)
 
-    datasets = [get_dataset(data[0], data[1], tokenizer_train, batch_size=batch_size, seq_len=seq_len,
-                            split_sentence=split_sentences, sent_len=sent_len)
-                for data in raw_data]
+    padded_sequences = [get_padded_sequences(t, tokenizer, seq_len=seq_len, split_sentences=split_sentences,
+                                             sent_len=sent_len)[0] for t in texts]
+    datasets = [get_dataset((x, y), batch_size=batch_size) for x, y in zip(padded_sequences, labels)]
 
     model.summary()
 
-    tensorboard = tf.keras.callbacks.TensorBoard(log_dir='tensorboard_logs/' + str(experiment_name),
+    tensorboard = tf.keras.callbacks.TensorBoard(log_dir=str(Path(TB_LOGS, experiment_name)),
                                                  histogram_freq=10)
-    save_model = tf.keras.callbacks.ModelCheckpoint('saved_models/' + experiment_name,
-                                                    save_best_only=True, monitor='val_accuracy')
+    save_model = tf.keras.callbacks.ModelCheckpoint(str(model_path / 'checkpoint.ckpt'),
+                                                    save_best_only=True,
+                                                    monitor='val_accuracy',
+                                                    save_weights_only=True)
 
-    early_stop = tf.keras.callbacks.EarlyStopping(monitor='val_accuracy', min_delta=0.01, patience=5)
+    early_stop = tf.keras.callbacks.EarlyStopping(monitor='val_accuracy', min_delta=0.01, patience=15)
 
     model.compile(optimizer='adam',
                   loss=tf.losses.BinaryCrossentropy(from_logits=True),
@@ -114,7 +103,8 @@ experiments = {
     # 'fc_1000': {'seq_len': 500, 'epochs': 200},
     # 'sos300_15': {'model_name': 'sos', 'split_sentences': True, 'seq_len': 300, 'sent_len': 15},
     # 'bilstm_split_300_15': {'model_name': 'bilstm', 'split_sentences': True, 'seq_len': 300, 'sent_len': 15},
-    'l_score300_15': {'model_name': 'l_score', 'split_sentences': True, 'seq_len': 300, 'sent_len': 15, 'epochs': 50},
+    # 'l_score300_15': {'model_name': 'l_score', 'split_sentences': True, 'seq_len': 300, 'sent_len': 15, 'epochs': 50},
+    "testus": {'split_sentences': True}
 }
 
 for experiment in experiments:

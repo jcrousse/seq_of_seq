@@ -13,3 +13,7 @@ TEST_SET = {
     1: TEST_POS_DIR,
     0: TEST_NEG_DIR
 }
+
+TB_LOGS = 'tensorboard_logs'
+MODEL_DIR = 'saved_models'
+MODEL_CONF = 'config.pkl'
