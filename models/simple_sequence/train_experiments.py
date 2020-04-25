@@ -12,8 +12,8 @@ from models.simple_sequence.experiment import Experiment
 #  OR, try to get it to work with seq 500 by reproducing this:
 #  https://machinelearningmastery.com/sequence-classification-lstm-recurrent-neural-networks-python-keras/
 
-n_test = 1000
-n_train = 500
+n_test = 10000
+n_train = 5000
 n_val = 2000
 
 

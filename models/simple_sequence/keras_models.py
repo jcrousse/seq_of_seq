@@ -91,7 +91,7 @@ def get_learned_scores(**kwargs):
     lstm_units_1 = 16
     lstm_units_2 = kwargs.get('lstm_cells', 16)
 
-    inputs = tf.keras.layers.Input(shape=(None,))
+    inputs = tf.keras.layers.Input(shape=(None,), name="input")
     embedded = tf.keras.layers.Embedding(kwargs.get('vocab_size'), embed_size)(inputs)
     reshaped = tf.reshape(embedded, (-1, sent_len, embed_size))
     lstm_level1 = tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(lstm_units_1))(reshaped)
@@ -102,7 +102,7 @@ def get_learned_scores(**kwargs):
     reshaped_scores = tf.reshape(score, (-1, sent_per_obs), name="relevance_reshaped")
 
     lstm_level2 = tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(lstm_units_2))(reshaped_level2)
-    classifier = tf.keras.layers.Dense(1)(lstm_level2)
+    classifier = tf.keras.layers.Dense(1, name="output")(lstm_level2)
 
     model = tf.keras.Model(inputs=inputs, outputs=classifier)
     return model
