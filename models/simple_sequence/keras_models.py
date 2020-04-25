@@ -96,9 +96,10 @@ def get_learned_scores(**kwargs):
     reshaped = tf.reshape(embedded, (-1, sent_len, embed_size))
     lstm_level1 = tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(lstm_units_1))(reshaped)
 
-    score = tf.keras.layers.Dense(1, activation='softmax')(lstm_level1)
+    score = tf.keras.layers.Dense(1, activation='softmax', name="relevance")(lstm_level1)
     weighted_reshaped = tf.math.multiply(lstm_level1, score)
     reshaped_level2 = tf.reshape(weighted_reshaped, (-1, sent_per_obs, lstm_units_1*2))
+    reshaped_scores = tf.reshape(score, (-1, sent_per_obs), name="relevance_reshaped")
 
     lstm_level2 = tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(lstm_units_2))(reshaped_level2)
     classifier = tf.keras.layers.Dense(1)(lstm_level2)

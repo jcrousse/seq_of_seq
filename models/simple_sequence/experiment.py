@@ -1,4 +1,5 @@
 import pickle
+from shutil import rmtree
 from pathlib import Path
 
 import tensorflow as tf
@@ -10,13 +11,14 @@ from preprocessing import load_or_fit_tokenizer, get_dataset, get_padded_sequenc
 
 class Experiment:
     def __init__(self, name, model_name='fully_connected', batch_size=256, seq_len=200, vocab_size=10000,
-                 epochs=100, embedding_size=16, split_sentences=False, sent_len=20, **kwargs):
+                 epochs=100, embedding_size=16, split_sentences=False, sent_len=20, overwrite=False, **kwargs):
 
-        self.path = Path(MODEL_DIR) / name
-        self.tokenizer = None
         self.name = name
+        self.path = Path(MODEL_DIR) / name
+        self.log_path = Path(TB_LOGS) / self.name
+        self.tokenizer = None
 
-        if self.path.exists():
+        if self.path.exists() and not overwrite:
             """ Loading model when already exists"""
             with open(self.path / MODEL_CONF, 'rb') as f:
                 kwargs = pickle.load(f)
@@ -26,6 +28,8 @@ class Experiment:
             self.keras_model.load_weights(latest)
         else:
             """ otherwise creating model and files"""
+            for path in [p for p in [self.path, self.log_path] if p.exists()]:
+                rmtree(path)
             kwargs = locals().copy()
             del kwargs['self']
             self.keras_model = model_map[model_name](**kwargs)
@@ -44,7 +48,7 @@ class Experiment:
                                  )
 
     def _get_callbacks(self):
-        tensorboard = tf.keras.callbacks.TensorBoard(log_dir=str(Path(TB_LOGS, self.name)),
+        tensorboard = tf.keras.callbacks.TensorBoard(log_dir=str(self.log_path),
                                                      histogram_freq=10)
 
         save_model = tf.keras.callbacks.ModelCheckpoint(str(self.path / 'checkpoint.ckpt'),
@@ -78,3 +82,13 @@ class Experiment:
     def predict(self, predict_data):
         padded_seq, _ = get_padded_sequences(predict_data, self.tokenizer, **self.config)
         return self.keras_model.predict(padded_seq)
+
+    def predict_layer(self, predict_data, layer="relevance_reshaped"):
+        padded_seq, _ = get_padded_sequences(predict_data, self.tokenizer, **self.config)
+        partial_model = tf.keras.Model(
+            inputs=self.keras_model.input,
+            outputs=self.keras_model.get_layer(layer).output)
+        get_3rd_layer_output = tf.keras.backend.function([self.keras_model.layers[0].input],
+                                                         [self.keras_model.layers[4].output])
+        layer_output = get_3rd_layer_output([padded_seq])[0]
+        return partial_model.predict(padded_seq)

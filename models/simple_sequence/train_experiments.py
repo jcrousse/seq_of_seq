@@ -2,16 +2,18 @@ from data_reader import DataReader
 from models.simple_sequence.experiment import Experiment
 
 # todo now:
-#  refactor model into a Class with save/load/overwrite (and cleanup directories), to avoid code duplication.
-#  Load saved model. Re-factor preprocessing pipeline to re-use for predict, incl. save tokenizer
+#  Try different attention approaches:
+#    -Softmax
+#    -Softmax + weighted sum
+#    -Double output
 #  extract score value per sentence from saves model at predict
 #  html output
 #  Generate junk in text and ruining it?  Or start by Making SoS work to review attention?
 #  OR, try to get it to work with seq 500 by reproducing this:
 #  https://machinelearningmastery.com/sequence-classification-lstm-recurrent-neural-networks-python-keras/
 
-n_test = 10000
-n_train = 5000
+n_test = 1000
+n_train = 500
 n_val = 2000
 
 
@@ -38,10 +40,10 @@ experiments = {
     # 'sos300_15': {'model_name': 'sos', 'split_sentences': True, 'seq_len': 300, 'sent_len': 15},
     # 'bilstm_split_300_15': {'model_name': 'bilstm', 'split_sentences': True, 'seq_len': 300, 'sent_len': 15},
     # 'l_score300_15': {'model_name': 'l_score', 'split_sentences': True, 'seq_len': 300, 'sent_len': 15, 'epochs': 50},
-    "testus": {'split_sentences': True}
+    "testus": {'model_name': 'l_score', 'split_sentences': True}
 }
 
 for experiment in experiments:
     name, config = experiment, experiments[experiment]
-    model = Experiment(name, **config)
+    model = Experiment(name, overwrite=True, **config)
     model.train(train_texts, val_texts, test_texts, train_labels, val_labels, test_labels)
