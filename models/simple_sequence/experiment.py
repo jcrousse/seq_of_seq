@@ -89,7 +89,4 @@ class Experiment:
         partial_model = tf.keras.Model(
             inputs=self.keras_model.input,
             outputs=self.keras_model.get_layer(layer).output)
-        get_3rd_layer_output = tf.keras.backend.function([self.keras_model.layers[0].input],
-                                                         [self.keras_model.layers[4].output])
-        layer_output = get_3rd_layer_output([padded_seq])[0]
         return partial_model.predict(padded_seq)

@@ -69,7 +69,7 @@ def get_sos_score(**kwargs):
     lstm_level1 = tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(lstm_units_1))(reshaped)
     x = tf.keras.layers.Dense(1, activation=None)(lstm_level1)
     logits = tf.reshape(x, (-1, sent_per_obs))
-    score = tf.keras.layers.Softmax()(logits)
+    score = tf.keras.layers.Softmax(name="score")(logits)
     weighted = tf.multiply(lstm_level1, tf.reshape(score, (-1, 1)))
 
     reshaped_level2 = tf.reshape(weighted, (-1, sent_per_obs, lstm_units_1*2))
