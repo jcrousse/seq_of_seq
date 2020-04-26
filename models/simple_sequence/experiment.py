@@ -70,7 +70,7 @@ class Experiment:
                                                  seq_len=self.config['seq_len'],
                                                  split_sentences=self.config['split_sentences'],
                                                  sent_len=self.config['sent_len'])[0] for t in texts]
-        datasets = [get_dataset(({"input": x}, {"output":y}), batch_size=self.config['batch_size'])
+        datasets = [get_dataset(({"input": x}, {"output": y, "output_2": y}), batch_size=self.config['batch_size'])
                     for x, y in zip(padded_sequences, labels)]
 
         _ = self.keras_model.fit(datasets[0],

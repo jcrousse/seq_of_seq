@@ -85,7 +85,7 @@ def get_padded_sequences(texts, tokenizer, seq_len=200, split_sentences=False, s
 def get_dataset(data, batch_size=256):
     dataset = tf.data.Dataset.from_tensor_slices(data)
     batches = dataset.shuffle(1000).padded_batch(batch_size,
-                                                 padded_shapes=({'input': [None]}, {'output': []}))
+                                                 padded_shapes=({'input': [None]}, {'output': [], 'output_2': []}))
     return batches
 
 

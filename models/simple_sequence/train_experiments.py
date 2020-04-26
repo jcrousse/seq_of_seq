@@ -40,7 +40,7 @@ experiments = {
     # 'sos300_15': {'model_name': 'sos', 'split_sentences': True, 'seq_len': 300, 'sent_len': 15},
     # 'bilstm_split_300_15': {'model_name': 'bilstm', 'split_sentences': True, 'seq_len': 300, 'sent_len': 15},
     # 'l_score300_15': {'model_name': 'l_score', 'split_sentences': True, 'seq_len': 300, 'sent_len': 15, 'epochs': 50},
-    "testus": {'model_name': 'l_score', 'split_sentences': True}
+    "testus": {'model_name': 'score', 'split_sentences': True}
 }
 
 for experiment in experiments:
