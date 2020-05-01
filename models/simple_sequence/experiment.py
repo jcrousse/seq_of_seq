@@ -51,11 +51,13 @@ class Experiment:
         tensorboard = tf.keras.callbacks.TensorBoard(log_dir=str(self.log_path),
                                                      histogram_freq=10)
 
+        monitor = 'val_accuracy' if len(self.keras_model.output_names) == 1 \
+            else f'val_{self.keras_model.output_names[0]}_accuracy'
         save_model = tf.keras.callbacks.ModelCheckpoint(str(self.path / 'checkpoint.ckpt'),
                                                         save_best_only=True,
-                                                        monitor='val_accuracy',
+                                                        monitor=monitor,
                                                         save_weights_only=True)
-        early_stop = tf.keras.callbacks.EarlyStopping(monitor='val_accuracy', min_delta=0.01, patience=15)
+        early_stop = tf.keras.callbacks.EarlyStopping(monitor=monitor, min_delta=0.01, patience=15)
         return [tensorboard, save_model, early_stop]
 
     def train(self, x_train, x_val, x_test, y_train, y_val, y_test, epochs=None):
@@ -80,9 +82,12 @@ class Experiment:
 
         _ = self.keras_model.evaluate(datasets[2], verbose=2)
 
-    def predict(self, predict_data):
-        padded_seq, _ = get_padded_sequences(predict_data, self.tokenizer, **self.config)
-        return self.keras_model.predict(padded_seq)
+    def predict(self, predict_data, return_sentences=False):
+        padded_seq, sentences = get_padded_sequences(predict_data, self.tokenizer, **self.config)
+        if return_sentences:
+            return self.keras_model.predict(padded_seq), sentences
+        else:
+            return self.keras_model.predict(padded_seq)
 
     def predict_layer(self, predict_data, layer="relevance_reshaped"):
         padded_seq, _ = get_padded_sequences(predict_data, self.tokenizer, **self.config)

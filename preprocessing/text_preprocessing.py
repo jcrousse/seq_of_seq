@@ -79,7 +79,7 @@ def get_padded_sequences(texts, tokenizer, seq_len=200, split_sentences=False, s
     preprocessed_texts = [[w for sentences in sent_list for w in sentences] for sent_list in padded_sentences]
     padded_sequences = tf.keras.preprocessing.sequence.pad_sequences(preprocessed_texts, padding='post', maxlen=seq_len)
 
-    return padded_sequences, sentences
+    return padded_sequences, [tokenizer.sequences_to_texts([list(e) for e in ps]) for ps in padded_sentences]
 
 
 def get_dataset(data, batch_size=256):

@@ -101,18 +101,18 @@ def get_learned_scores(**kwargs):
     reshaped = tf.reshape(embedded, (-1, sent_len, embed_size))
     lstm_level1 = tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(lstm_units_1))(reshaped)
 
-    score_logits = tf.keras.layers.Dense(1, activation=None)(lstm_level1)
-    score = tf.nn.softmax(score_logits)
-    weighted_reshaped = tf.math.multiply(lstm_level1, score)
+    x = tf.keras.layers.Dense(1, activation=None)(lstm_level1)
+    logits = tf.reshape(x, (-1, sent_per_obs))
+    score = tf.keras.layers.Softmax(name="score")(logits)
+    weighted = tf.multiply(lstm_level1, tf.reshape(score, (-1, 1)))
 
-    reshaped_level2 = tf.reshape(weighted_reshaped, (-1, sent_per_obs, lstm_units_1*2))
-
-    weighted_sum = tf.reshape(tf.math.reduce_sum(weighted_reshaped, axis=0), (-1, lstm_units_1*2))
+    reshaped_level2 = tf.reshape(weighted, (-1, sent_per_obs, lstm_units_1*2))
+    w_average = tf.keras.layers.GlobalAveragePooling1D()(reshaped_level2)
 
     lstm_level2 = tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(lstm_units_2))(reshaped_level2)
 
     classifier = tf.keras.layers.Dense(1, name="output")(lstm_level2)
-    classifier2 = tf.keras.layers.Dense(1, name="output_2")(weighted_sum)
+    classifier2 = tf.keras.layers.Dense(1, name="output_2")(w_average)
 
     model = tf.keras.Model(inputs=inputs, outputs=[classifier, classifier2])
     return model
@@ -140,4 +140,3 @@ if __name__ == '__main__':
     print(my_model(my_data))
     another_model = get_bilstm(vocab_size=10, embedding_size=2,)
     print(another_model(my_data))
-

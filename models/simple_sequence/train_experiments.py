@@ -2,15 +2,8 @@ from data_reader import DataReader
 from models.simple_sequence.experiment import Experiment
 
 # todo now:
-#  Try different attention approaches:
-#    -Softmax
-#    -Softmax + weighted sum
-#    -Double output
-#  extract score value per sentence from saves model at predict
-#  html output
 #  Generate junk in text and ruining it?  Or start by Making SoS work to review attention?
-#  OR, try to get it to work with seq 500 by reproducing this:
-#  https://machinelearningmastery.com/sequence-classification-lstm-recurrent-neural-networks-python-keras/
+#  Split output for well classified and missclassified
 
 n_test = 10000
 n_train = 5000
@@ -40,7 +33,7 @@ experiments = {
     # 'sos300_15': {'model_name': 'sos', 'split_sentences': True, 'seq_len': 300, 'sent_len': 15},
     # 'bilstm_split_300_15': {'model_name': 'bilstm', 'split_sentences': True, 'seq_len': 300, 'sent_len': 15},
     # 'l_score300_15': {'model_name': 'l_score', 'split_sentences': True, 'seq_len': 300, 'sent_len': 15, 'epochs': 50},
-    "testus": {'model_name': 'score', 'split_sentences': True}
+    "testus": {'model_name': 'l_score', 'split_sentences': True}
 }
 
 for experiment in experiments:
