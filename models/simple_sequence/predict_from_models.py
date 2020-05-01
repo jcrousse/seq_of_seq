@@ -2,7 +2,7 @@ from data_reader import DataReader
 from models.simple_sequence.experiment import Experiment
 from utils.write_to_html import write_to_html
 
-MODEL_LOAD = 'testus'
+MODEL_LOAD = 'score200_20'
 
 
 model = Experiment(MODEL_LOAD)

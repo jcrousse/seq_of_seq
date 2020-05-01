@@ -30,7 +30,7 @@ class Experiment:
             """ otherwise creating model and files"""
             for path in [p for p in [self.path, self.log_path] if p.exists()]:
                 rmtree(path)
-            kwargs = locals().copy()
+            kwargs = {**locals().copy(), **kwargs}
             del kwargs['self']
             self.keras_model = model_map[model_name](**kwargs)
             self.path.mkdir(parents=True, exist_ok=True)
@@ -38,6 +38,12 @@ class Experiment:
                 pickle.dump(kwargs, f)
 
         self.config = kwargs
+
+        output_layer = self.keras_model.output
+        if isinstance(output_layer, list):
+            self.out_shape = output_layer[0].shape[1]
+        else:
+            self.out_shape = output_layer.shape[1]
         self.compile_model()
 
     def compile_model(self):
@@ -66,13 +72,21 @@ class Experiment:
             epochs = self.config['epochs']
         texts = [x_train, x_val, x_test]
         labels = [y_train, y_val, y_test]
+        if self.config.get("concat_outputs", False):
+            n_outputs = len(self.keras_model.layers[-1].input)
+            # labels = [[e for sublist in [[i] * n_outputs for i in y] for e in sublist] for y in labels]
+            labels = [[[e, e] for e in sublist] for sublist in labels]
 
         self.tokenizer = load_or_fit_tokenizer(self.path, self.config['vocab_size'], corpus=x_train)
         padded_sequences = [get_padded_sequences(t, self.tokenizer,
                                                  seq_len=self.config['seq_len'],
                                                  split_sentences=self.config['split_sentences'],
                                                  sent_len=self.config['sent_len'])[0] for t in texts]
-        datasets = [get_dataset(({"input": x}, {"output": y, "output_2": y}), batch_size=self.config['batch_size'])
+        datasets = [get_dataset((
+            {"input": x},
+            {"output": y, "output_2": y}),
+            batch_size=self.config['batch_size'],
+            out_shape=self.out_shape)
                     for x, y in zip(padded_sequences, labels)]
 
         _ = self.keras_model.fit(datasets[0],

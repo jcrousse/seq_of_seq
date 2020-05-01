@@ -1,20 +1,29 @@
 from data_reader import DataReader
 from models.simple_sequence.experiment import Experiment
+from sklearn.model_selection import train_test_split
 
 # todo now:
-#  Generate junk in text and ruining it?  Or start by Making SoS work to review attention?
-#  Split output for well classified and missclassified
+#  Keep best model on multiple outputs: Concatenate outputs and labels.  --DONE--
+#  Split output for well classified and missclassified. Or name them by distance from actual.
+#  quantitatively estimate spread of relevance, and show extreme examples.
+#  --- New project structure: ---
+#  1. Identify sentence relevance in IMDB Dataset --DONE--
+#  (2. optional) Generate a dataset of random sentences from a vocabulary with a set of pre-defined
+#  sentences appearing in positive examples only. Confirm those pre-defined sentences are seen as relevant
+#  with current model
+#  3. Apply same logic to paragraph relevance: IMDB paragraphs cs random paragraphs. Generate random datasets.
+#  split by paragraph instead of sentences so it is easier.
 
-n_test = 10000
-n_train = 5000
+n_test = 5000
+n_train = 15000
 n_val = 2000
 
 
 test_texts, test_labels = DataReader(0.5, dataset='test').take(n_test)
 
 train_dr = DataReader(0.5)
-train_texts, train_labels = train_dr.take(n_train)
-val_texts, val_labels = train_dr.take(n_val)
+train_texts, train_labels = train_dr.take(n_train + n_val)
+train_texts, val_texts, train_labels, val_labels = train_test_split(train_texts, train_labels, test_size=n_val)
 
 experiments = {
     # 'fc_200': {'seq_len': 200},
@@ -33,7 +42,11 @@ experiments = {
     # 'sos300_15': {'model_name': 'sos', 'split_sentences': True, 'seq_len': 300, 'sent_len': 15},
     # 'bilstm_split_300_15': {'model_name': 'bilstm', 'split_sentences': True, 'seq_len': 300, 'sent_len': 15},
     # 'l_score300_15': {'model_name': 'l_score', 'split_sentences': True, 'seq_len': 300, 'sent_len': 15, 'epochs': 50},
-    "testus": {'model_name': 'l_score', 'split_sentences': True}
+    # 'l_score200_20': {'model_name': 'l_score', 'split_sentences': True},
+    # "testus": {'model_name': 'l_score', 'split_sentences': True},
+    # 'l_concat300_15': {'model_name': 'l_score', 'split_sentences': True, 'seq_len': 300, 'sent_len': 15, 'epochs': 50,
+    #                    'concat_outputs': True}
+    'score200_20': {'model_name': 'score', 'split_sentences': True},
 }
 
 for experiment in experiments:

@@ -93,6 +93,8 @@ def get_learned_scores(**kwargs):
     assert seq_len % sent_len == 0, "sequence length must be a multiple of sentence length"
     sent_per_obs = seq_len // sent_len
 
+    concat_outputs = kwargs.get("concat_outputs", False)
+
     lstm_units_1 = 16
     lstm_units_2 = kwargs.get('lstm_cells', 16)
 
@@ -111,10 +113,17 @@ def get_learned_scores(**kwargs):
 
     lstm_level2 = tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(lstm_units_2))(reshaped_level2)
 
-    classifier = tf.keras.layers.Dense(1, name="output")(lstm_level2)
-    classifier2 = tf.keras.layers.Dense(1, name="output_2")(w_average)
+    if concat_outputs:
+        classifier = tf.keras.layers.Dense(1)(lstm_level2)
+        classifier2 = tf.keras.layers.Dense(1)(w_average)
+        outputs = tf.keras.layers.concatenate([classifier, classifier2], name="output")
+    else:
+        classifier = tf.keras.layers.Dense(1, name="output")(lstm_level2)
+        classifier2 = tf.keras.layers.Dense(1, name="output_2")(w_average)
 
-    model = tf.keras.Model(inputs=inputs, outputs=[classifier, classifier2])
+        outputs = [classifier, classifier2]
+
+    model = tf.keras.Model(inputs=inputs, outputs=outputs)
     return model
 
 
