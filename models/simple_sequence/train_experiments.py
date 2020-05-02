@@ -5,7 +5,8 @@ from sklearn.model_selection import train_test_split
 # todo now:
 #  Keep best model on multiple outputs: Concatenate outputs and labels.  --DONE--
 #  Split output for well classified and missclassified. Or name them by distance from actual.
-#  quantitatively estimate spread of relevance, and show extreme examples.
+#  quantitatively estimate spread of relevance, and show extreme examples. --DONE--
+#  Check the accuracy: Higher accuracy for combined model might be only due to cases of 0.5 acc --DONE--
 #  --- New project structure: ---
 #  1. Identify sentence relevance in IMDB Dataset --DONE--
 #  (2. optional) Generate a dataset of random sentences from a vocabulary with a set of pre-defined
@@ -46,7 +47,10 @@ experiments = {
     # "testus": {'model_name': 'l_score', 'split_sentences': True},
     # 'l_concat300_15': {'model_name': 'l_score', 'split_sentences': True, 'seq_len': 300, 'sent_len': 15, 'epochs': 50,
     #                    'concat_outputs': True}
-    'score200_20': {'model_name': 'score', 'split_sentences': True},
+    # 'score200_20': {'model_name': 'score', 'split_sentences': True},
+    # 'l_concat200_20': {'model_name': 'l_score', 'split_sentences': True, 'seq_len': 200, 'sent_len': 20, 'epochs': 50,
+    #                    'concat_outputs': True},
+    # 'score300_15': {'model_name': 'score', 'split_sentences': True, 'seq_len': 300, 'sent_len': 15, 'epochs': 50,},
 }
 
 for experiment in experiments:
