@@ -15,7 +15,7 @@ class TestDataReader(TestCase):
         self.assertEqual(len(examples), 20)
 
     def test_t_set(self):
-        dr = DataReader(dataset='test')
+        dr = DataReader(subset='test')
         examples = []
         for i in range(20):
             examples.append(dr())

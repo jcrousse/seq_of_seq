@@ -1,10 +1,10 @@
 import os
 from random import shuffle
-from config.config import TRAIN_SET, TEST_SET
+from config.config import DIR_LABEL_MAP, BASE_PATH
 
 
 class DataReader:
-    def __init__(self, pos_pct=0.5, dataset='train'):
+    def __init__(self, pos_pct=0.5, subset='train', dataset='aclImdb'):
         """
         defines a data reader (generator) with a certain percentage of positive examples.
         apporach to reach the percentage is most basic:
@@ -22,10 +22,10 @@ class DataReader:
         self.next_labels_vector = []
         self.update_next_labels()
 
-        self.data_dirs = TRAIN_SET if dataset == 'train' else TEST_SET
+        self.data_dirs = {v: os.path.join(BASE_PATH, dataset, subset, k) for k, v in DIR_LABEL_MAP.items()}
 
         self.example_files = {
-            label: iter([self.data_dirs[label] + '/' + str(e) for e in os.listdir(self.data_dirs[label])])
+            label: iter([os.path.join(self.data_dirs[label], str(e)) for e in os.listdir(self.data_dirs[label])])
             for label in [0, 1]
         }
 

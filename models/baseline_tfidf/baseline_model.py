@@ -9,7 +9,7 @@ from models.baseline_tfidf.tfidf_svm import tfidf_svm
 
 n_test = 10000
 
-test_text, test_labels = DataReader(0.5, dataset='test').take(n_test)
+test_text, test_labels = DataReader(0.5, subset='test').take(n_test)
 
 s_test = set(test_text)
 test_dataset = [simple_preprocess(t) for t in tqdm(test_text)]

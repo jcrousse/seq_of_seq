@@ -13,7 +13,7 @@ NUM_PRED = 100
 
 if __name__ == '__main__':
 
-    predict_text, predict_labels = DataReader(0.5, dataset='test').take(NUM_PRED)
+    predict_text, predict_labels = DataReader(0.5, subset='test').take(NUM_PRED)
 
     for m_name in MODELS_LOAD:
         model = Experiment(m_name)

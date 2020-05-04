@@ -20,7 +20,7 @@ n_train = 15000
 n_val = 2000
 
 
-test_texts, test_labels = DataReader(0.5, dataset='test').take(n_test)
+test_texts, test_labels = DataReader(0.5, subset='test').take(n_test)
 
 train_dr = DataReader(0.5)
 train_texts, train_labels = train_dr.take(n_train + n_val)

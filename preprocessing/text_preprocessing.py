@@ -54,7 +54,7 @@ def load_or_fit_tokenizer(tokenizer_dir, vocab_size, corpus=None, **_):
     else:
         assert corpus is not None, "corpus must be provided if not tokenizer.json file in tokenizer_dir"
         tokenizer = tf.keras.preprocessing.text.Tokenizer(num_words=vocab_size,
-                                                          filters=r'!"#$%&()*+.,-/:;=?@[\]^_`{|}~ ')
+                                                          filters=r'><!"#$%&()*+.,-/:;=?@[\]^_`{|}~ ')
         tokenizer.fit_on_texts(corpus)
         tokenizer_dir.mkdir(parents=True, exist_ok=True)
         with open(tokenizer_path, 'w') as f:

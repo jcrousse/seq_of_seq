@@ -7,7 +7,7 @@ from data_reader import DataReader
 from models.simple_sequence.experiment import Experiment
 
 MODELS = ['score200_20', 'l_concat200_20']
-predict_text, predict_labels = DataReader(0.5, dataset='test').take(1000)
+predict_text, predict_labels = DataReader(0.5, subset='test').take(1000)
 
 
 def get_relevance(model_name, texts):
