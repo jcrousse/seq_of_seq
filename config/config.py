@@ -8,3 +8,4 @@ DIR_LABEL_MAP = {
 TB_LOGS = 'tensorboard_logs'
 MODEL_DIR = 'saved_models'
 MODEL_CONF = 'config.pkl'
+PARAGRAPH_SEPARATOR = " endofparagraph "

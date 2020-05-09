@@ -2,6 +2,8 @@ from data_reader import DataReader
 from models.simple_sequence.experiment import Experiment
 from sklearn.model_selection import train_test_split
 
+from preprocessing.text_preprocessing import split_paragraphs
+
 # todo now:
 #  Keep best model on multiple outputs: Concatenate outputs and labels.  --DONE--
 #  Split output for well classified and missclassified. Or name them by distance from actual.
@@ -15,16 +17,17 @@ from sklearn.model_selection import train_test_split
 #  3. Apply same logic to paragraph relevance: IMDB paragraphs cs random paragraphs. Generate random datasets.
 #  split by paragraph instead of sentences so it is easier.
 
-n_test = 5000
-n_train = 15000
-n_val = 2000
+N_TEST = 5000
+N_TRAIN = 8000
+N_VAL = 2000
 
+DATASET = "P5_from10000_vocab5000"
 
-test_texts, test_labels = DataReader(0.5, subset='test').take(n_test)
+test_texts, test_labels = DataReader(0.5, dataset=DATASET, subset='test').take(N_TEST)
 
-train_dr = DataReader(0.5)
-train_texts, train_labels = train_dr.take(n_train + n_val)
-train_texts, val_texts, train_labels, val_labels = train_test_split(train_texts, train_labels, test_size=n_val)
+train_dr = DataReader(0.5, dataset=DATASET)
+train_texts, train_labels = train_dr.take(N_TRAIN + N_VAL)
+train_texts, val_texts, train_labels, val_labels = train_test_split(train_texts, train_labels, test_size=N_VAL)
 
 experiments = {
     # 'fc_200': {'seq_len': 200},
@@ -44,13 +47,13 @@ experiments = {
     # 'bilstm_split_300_15': {'model_name': 'bilstm', 'split_sentences': True, 'seq_len': 300, 'sent_len': 15},
     # 'l_score300_15': {'model_name': 'l_score', 'split_sentences': True, 'seq_len': 300, 'sent_len': 15, 'epochs': 50},
     # 'l_score200_20': {'model_name': 'l_score', 'split_sentences': True},
-    # "testus": {'model_name': 'l_score', 'split_sentences': True},
     # 'l_concat300_15': {'model_name': 'l_score', 'split_sentences': True, 'seq_len': 300, 'sent_len': 15, 'epochs': 50,
     #                    'concat_outputs': True}
     # 'score200_20': {'model_name': 'score', 'split_sentences': True},
     # 'l_concat200_20': {'model_name': 'l_score', 'split_sentences': True, 'seq_len': 200, 'sent_len': 20, 'epochs': 50,
     #                    'concat_outputs': True},
     # 'score300_15': {'model_name': 'score', 'split_sentences': True, 'seq_len': 300, 'sent_len': 15, 'epochs': 50,},
+    "testus": {'model_name': 'l_score', 'split_sentences': True, 'sent_splitter': split_paragraphs, 'sent_len': 300, 'seq_len': 1500},
 }
 
 for experiment in experiments:

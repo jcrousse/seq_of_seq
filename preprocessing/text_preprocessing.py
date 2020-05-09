@@ -4,6 +4,7 @@ import spacy
 import tensorflow as tf
 from spacy.pipeline import Sentencizer
 
+from config.config import PARAGRAPH_SEPARATOR
 
 sentencizer = Sentencizer()
 nlp = spacy.load('en_core_web_sm')
@@ -30,7 +31,7 @@ def preprocess(text):
     return " ".join(processed_tokens)
 
 
-def sent_splitter(text):
+def split_all_sentences(text):
     """
     split by sentences, then by word. Returns text of fixed length with padded sentences.
     :param text: string to split
@@ -38,6 +39,10 @@ def sent_splitter(text):
     """
     sentences = [str(sent) for sent in sentence_splitter(text).sents]
     return sentences
+
+
+def split_paragraphs(text: str):
+    return text.split(PARAGRAPH_SEPARATOR)
 
 
 def load_tokenizer(tokenizer_path):
@@ -62,7 +67,8 @@ def load_or_fit_tokenizer(tokenizer_dir, vocab_size, corpus=None, **_):
     return tokenizer
 
 
-def get_padded_sequences(texts, tokenizer, seq_len=200, split_sentences=False, sent_len=20, **_):
+def get_padded_sequences(texts, tokenizer, seq_len=200, split_sentences=False, sent_len=20,
+                         sent_splitter=split_all_sentences, **_):
     if split_sentences:
         sentences = [sent_splitter(t) for t in texts]
 
@@ -95,4 +101,4 @@ def get_dataset(data, batch_size=256, out_shape=1):
 
 if __name__ == '__main__':
     example_text = "this is a text! it has four sentences of different lengths. a question? Sure"
-    print(sent_splitter(example_text))
+    print(split_all_sentences(example_text))

@@ -7,9 +7,9 @@ from tqdm import tqdm
 import numpy as np
 from tensorflow.keras.preprocessing.text import Tokenizer
 
-from config.config import DIR_LABEL_MAP, BASE_PATH
+from config.config import DIR_LABEL_MAP, BASE_PATH, PARAGRAPH_SEPARATOR
 from data_reader import DataReader
-from preprocessing.text_preprocessing import sent_splitter
+from preprocessing.text_preprocessing import split_all_sentences
 
 N_EXAMPLES = 20000
 N_PARAGRAPHS = 5
@@ -17,7 +17,6 @@ SUBSET = 'test'
 
 N_SOURCE_EXAMPLES = 10000
 VOCAB_SIZE = 5000
-PARAGRAPH_SEPARATOR = " endofparagraph "
 OVERWRITE = True
 
 LABEL_DIR_MAP = {v: k for k, v in DIR_LABEL_MAP.items()}
@@ -54,7 +53,7 @@ if __name__ == '__main__':
     label_to_dir = prep_directories()
 
     texts, labels = DataReader(0.5, subset=SUBSET).take(N_SOURCE_EXAMPLES)
-    sentences = [sent_splitter(t) for t in texts]
+    sentences = [split_all_sentences(t) for t in texts]
 
     tokenizer = Tokenizer(num_words=VOCAB_SIZE, filters=r'><!"#$%&()*+.,-/:;=?@[\]^_`{|}~ ')
     tokenizer.fit_on_texts(texts)
