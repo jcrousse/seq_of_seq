@@ -95,7 +95,7 @@ def get_learned_scores(**kwargs):
 
     concat_outputs = kwargs.get("concat_outputs", False)
 
-    lstm_units_1 = 16
+    lstm_units_1 = kwargs.get('lstm_units_1', 16)
     lstm_units_2 = kwargs.get('lstm_cells', 16)
 
     inputs = tf.keras.layers.Input(shape=(None,), name="input")

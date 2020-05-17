@@ -1,5 +1,5 @@
 from unittest import TestCase
-from data_reader import DataReader
+from data_interface import DataReader
 
 
 class TestDataReader(TestCase):

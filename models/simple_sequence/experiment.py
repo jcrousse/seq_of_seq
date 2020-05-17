@@ -68,8 +68,6 @@ class Experiment:
 
     def train(self, x_train, x_val, x_test, y_train, y_val, y_test, epochs=None):
 
-        if epochs is None:
-            epochs = self.config['epochs']
         texts = [x_train, x_val, x_test]
         labels = [y_train, y_val, y_test]
         if self.config.get("concat_outputs", False):
@@ -89,12 +87,21 @@ class Experiment:
             out_shape=self.out_shape)
                     for x, y in zip(padded_sequences, labels)]
 
-        _ = self.keras_model.fit(datasets[0],
-                                 validation_data=datasets[1],
+        self.train_from_datasets(datasets, epochs=epochs)
+
+    def train_from_datasets(self, dataset_list, epochs=None):
+        """
+        train from a list of three TF datasets: train, val and test
+        """
+        if epochs is None:
+            epochs = self.config['epochs']
+
+        _ = self.keras_model.fit(dataset_list[0],
+                                 validation_data=dataset_list[1],
                                  epochs=epochs,
                                  callbacks=self._get_callbacks())
 
-        _ = self.keras_model.evaluate(datasets[2], verbose=2)
+        _ = self.keras_model.evaluate(dataset_list[2], verbose=2)
 
     def predict(self, predict_data, return_sentences=False):
         padded_seq, sentences = get_padded_sequences(predict_data, self.tokenizer, **self.config)

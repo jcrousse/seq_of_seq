@@ -3,7 +3,7 @@ import seaborn as sns
 import pandas as pd
 from itertools import combinations
 
-from data_reader import DataReader
+from data_interface import DataReader
 from models.simple_sequence.experiment import Experiment
 
 MODELS = ['score200_20', 'l_concat200_20']

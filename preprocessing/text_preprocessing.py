@@ -92,7 +92,10 @@ def get_dataset(data, batch_size=256, out_shape=1):
     out_s = [out_shape, ]
     if out_s == [1]:
         out_s = []
-    dataset = tf.data.Dataset.from_tensor_slices(data)
+    if isinstance(data, tf.data.Dataset):
+        dataset = data
+    else:
+        dataset = tf.data.Dataset.from_tensor_slices(data)
     batches = dataset.shuffle(1000).padded_batch(batch_size,
                                                  padded_shapes=({'input': [None]}, {'output': out_s,
                                                                                     'output_2': out_s}))

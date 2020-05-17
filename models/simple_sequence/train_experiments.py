@@ -1,27 +1,23 @@
-from data_reader import DataReader
+from data_interface import DataReader
 from models.simple_sequence.experiment import Experiment
 from sklearn.model_selection import train_test_split
 
 from preprocessing.text_preprocessing import split_paragraphs
 
 # todo now:
-#  Keep best model on multiple outputs: Concatenate outputs and labels.  --DONE--
-#  Split output for well classified and missclassified. Or name them by distance from actual.
-#  quantitatively estimate spread of relevance, and show extreme examples. --DONE--
-#  Check the accuracy: Higher accuracy for combined model might be only due to cases of 0.5 acc --DONE--
-#  --- New project structure: ---
-#  1. Identify sentence relevance in IMDB Dataset --DONE--
-#  (2. optional) Generate a dataset of random sentences from a vocabulary with a set of pre-defined
-#  sentences appearing in positive examples only. Confirm those pre-defined sentences are seen as relevant
-#  with current model
-#  3. Apply same logic to paragraph relevance: IMDB paragraphs cs random paragraphs. Generate random datasets.
-#  split by paragraph instead of sentences so it is easier.
+#  - Try spacy transformers on paragraphs ?
+#       >> Make the model more modulable so it can use own embeddings or not.
+#       >> Then feed doc.tensor into model as result of pre-processing?
+#               Or prep TF Dataset as Tensors?
+#       >> Generate a TFRecord dataset with those lists of tensors? Padded? How to pad?
+#  - Run train on floydhub?
+#  - "Cheat" with set of positive / negative sentences ?
 
-N_TEST = 5000
-N_TRAIN = 8000
-N_VAL = 2000
+N_TEST = 500
+N_TRAIN = 1700
+N_VAL = 200
 
-DATASET = "P5_from10000_vocab5000"
+DATASET = "P4_from1200_vocab200_fromPNone_noextra"
 
 test_texts, test_labels = DataReader(0.5, dataset=DATASET, subset='test').take(N_TEST)
 
@@ -53,7 +49,8 @@ experiments = {
     # 'l_concat200_20': {'model_name': 'l_score', 'split_sentences': True, 'seq_len': 200, 'sent_len': 20, 'epochs': 50,
     #                    'concat_outputs': True},
     # 'score300_15': {'model_name': 'score', 'split_sentences': True, 'seq_len': 300, 'sent_len': 15, 'epochs': 50,},
-    "testus": {'model_name': 'l_score', 'split_sentences': True, 'sent_splitter': split_paragraphs, 'sent_len': 300, 'seq_len': 1500},
+    "testus": {'model_name': 'l_score', 'split_sentences': True, 'sent_splitter': split_paragraphs, 'sent_len': 200,
+               'seq_len': 1200, 'batch_size': 512, 'concat_outputs': True, 'lstm_units_1': 32},
 }
 
 for experiment in experiments:

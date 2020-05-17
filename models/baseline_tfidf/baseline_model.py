@@ -3,7 +3,7 @@ import pandas as pd
 import seaborn as sns
 from tqdm import tqdm
 
-from data_reader import DataReader
+from data_interface import DataReader
 from preprocessing import simple_preprocess
 from models.baseline_tfidf.tfidf_svm import tfidf_svm
 

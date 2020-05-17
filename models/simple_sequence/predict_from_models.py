@@ -3,17 +3,19 @@ from shutil import rmtree
 
 import numpy as np
 
-from data_reader import DataReader
+from data_interface import DataReader
 from models.simple_sequence.experiment import Experiment
 from utils.write_to_html import write_to_html
 
-MODELS_LOAD = ['l_concat200_20']
+MODELS_LOAD = ['testus']
 OVERWRITE = True
 NUM_PRED = 100
 
+DATASET = "P4_from1200_vocab200_fromPNone_noextra"
+
 if __name__ == '__main__':
 
-    predict_text, predict_labels = DataReader(0.5, subset='test').take(NUM_PRED)
+    predict_text, predict_labels = DataReader(0.5, dataset=DATASET, subset='test').take(NUM_PRED)
 
     for m_name in MODELS_LOAD:
         model = Experiment(m_name)
