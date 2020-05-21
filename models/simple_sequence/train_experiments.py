@@ -17,6 +17,7 @@ N_TEST = 80
 N_TRAIN = 70
 N_VAL = 20
 
+PRE_CALC_EMBEDD = False
 DATASET_NAME = "P4_from1200_vocab200_fromPNone_noextra"
 
 # test_texts, test_labels = DataReader(0.5, dataset=DATASET, subset='test').take(N_TEST)
@@ -25,7 +26,7 @@ DATASET_NAME = "P4_from1200_vocab200_fromPNone_noextra"
 # train_texts, train_labels = train_dr.take(N_TRAIN + N_VAL)
 # train_texts, val_texts, train_labels, val_labels = train_test_split(train_texts, train_labels, test_size=N_VAL)
 
-datasets = get_dataset(DATASET_NAME, N_TRAIN, N_VAL, N_TEST)
+datasets = get_dataset(DATASET_NAME, N_TRAIN, N_VAL, N_TEST, PRE_CALC_EMBEDD)
 
 experiments = {
     # 'fc_200': {'seq_len': 200},
@@ -53,10 +54,12 @@ experiments = {
     # 'score300_15': {'model_name': 'score', 'split_sentences': True, 'seq_len': 300, 'sent_len': 15, 'epochs': 50,},
     "testus": {'model_name': 'l_score', 'split_sentences': True, 'sent_splitter': split_paragraphs, 'sent_len': 200,
                'seq_len': 1200, 'batch_size': 512, 'concat_outputs': True, 'lstm_units_1': 32,
-               'embedding_size': 768, 'pre_embedded': True},
+               'embedding_size': 768, 'pre_embedded': PRE_CALC_EMBEDD},
 }
 
 # todo: think of a neat way to automatically pass the right embedding size if using pre-trained embeddings
+# todo: single configuration for dataset structure (currently coded in three different places)
+# todo: dataset preprocessing for concat output
 
 for experiment in experiments:
     name, config = experiment, experiments[experiment]

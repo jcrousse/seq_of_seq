@@ -68,32 +68,40 @@ class Experiment:
 
     def train(self, datasets, epochs=None):
         if isinstance(datasets[0], tuple):
-            self._train_from_mem(datasets, epochs)
+            prep_data = self._format_mem_data(datasets, epochs)
         else:
-            self._train_from_tfdatasets(datasets, epochs)
+            prep_data = datasets
+        concat_output = self.config.get("concat_outputs", False)
+        n_outputs = len(self.keras_model.layers[-1].input)
+        out_shape = self.out_shape
+        datasets = [get_dataset(dt, batch_size=self.config['batch_size'],
+                                concat_outputs=concat_output,
+                                n_outputs=n_outputs,
+                                out_shape=out_shape) for dt in prep_data]
+        self._train_from_tfdatasets(datasets, epochs)
 
-    def _train_from_mem(self, dataset_items, epochs=None):
+    def _format_mem_data(self, dataset_items, epochs=None):
 
         texts = [dataset_items[0][0], dataset_items[1][0], dataset_items[2][0]]
         labels = [dataset_items[0][1], dataset_items[1][1], dataset_items[2][1]]
-        if self.config.get("concat_outputs", False):
-            n_outputs = len(self.keras_model.layers[-1].input)
-            # labels = [[e for sublist in [[i] * n_outputs for i in y] for e in sublist] for y in labels]
-            labels = [[[e, e] for e in sublist] for sublist in labels]
+        # if self.config.get("concat_outputs", False):
+        #     n_outputs = len(self.keras_model.layers[-1].input)
+        #     labels = [[[e] * n_outputs for e in sublist] for sublist in labels]
 
         self.tokenizer = load_or_fit_tokenizer(self.path, self.config['vocab_size'], corpus=dataset_items[0][0])
         padded_sequences = [get_padded_sequences(t, self.tokenizer,
                                                  seq_len=self.config['seq_len'],
                                                  split_sentences=self.config['split_sentences'],
                                                  sent_len=self.config['sent_len'])[0] for t in texts]
-        datasets = [get_dataset((
-            {"input": x},
-            {"output": y, "output_2": y}),
-            batch_size=self.config['batch_size'],
-            out_shape=self.out_shape)
-                    for x, y in zip(padded_sequences, labels)]
 
-        self._train_from_tfdatasets(datasets, epochs=epochs)
+        # datasets = [get_dataset((
+        #     {"input": x},
+        #     {"output": y, "output_2": y}),
+        #     batch_size=self.config['batch_size'],
+        #     out_shape=self.out_shape)
+        #             for x, y in zip(padded_sequences, labels)]
+        return [({"input": x}, {"output": y, "output_2": y}) for x, y in zip(padded_sequences, labels)]
+
 
     def _train_from_tfdatasets(self, dataset_list, epochs=None):
         """

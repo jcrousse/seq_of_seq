@@ -88,7 +88,8 @@ def get_padded_sequences(texts, tokenizer, seq_len=200, split_sentences=False, s
     return padded_sequences, [tokenizer.sequences_to_texts([list(e) for e in ps]) for ps in padded_sentences]
 
 
-def get_dataset(data, batch_size=256, out_shape=1):
+def get_dataset(data, batch_size=256, concat_outputs=False, n_outputs=1, out_shape=1):
+
     out_s = [out_shape, ]
     if out_s == [1]:
         out_s = []
@@ -96,6 +97,10 @@ def get_dataset(data, batch_size=256, out_shape=1):
         dataset = data
     else:
         dataset = tf.data.Dataset.from_tensor_slices(data)
+    if concat_outputs:
+        dataset = dataset.map(lambda x, y: (x,
+                                            {'output': [y['output']] * n_outputs,
+                                             'output_2':  [y['output_2']] * n_outputs}))
     batches = dataset.shuffle(1000).padded_batch(batch_size,
                                                  padded_shapes=({'input': [None]}, {'output': out_s,
                                                                                     'output_2': out_s}))

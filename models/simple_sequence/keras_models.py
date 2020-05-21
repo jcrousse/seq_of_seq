@@ -100,7 +100,7 @@ def get_learned_scores(**kwargs):
     lstm_units_2 = kwargs.get('lstm_cells', 16)
 
     if pre_embedded:
-        inputs = tf.keras.layers.Input(shape=(None, seq_len, sent_len, embed_size), name="input")
+        inputs = tf.keras.layers.Input(shape=(None, ), name="input")
         embedded = tf.reshape(inputs, (-1, seq_len * sent_len, embed_size))
     else:
         inputs = tf.keras.layers.Input(shape=(None,), name="input")

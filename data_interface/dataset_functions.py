@@ -45,24 +45,28 @@ def get_filpaths_pkl(path):
 
 
 def filelist_to_dataset(filelist):
-    return tf.data.Dataset.from_generator(generator_factory(filelist), {'input': tf.float32,
-                                                                        'output': tf.int32,
-                                                                        'output_2': tf.int32})
+    return tf.data.Dataset.from_generator(generator_factory(filelist), ({'input': tf.float32},
+                                                                        {'output': tf.int32,
+                                                                         'output_2': tf.int32}))
 
 
-def _prep_tf_dataset(dataset_path, n_train, n_val, n_test):
+def _prep_tf_dataset(dataset_name, n_train, n_val, n_test):
+    dataset_path = os.path.join(PKL_LOCATION, dataset_name)
     all_train_files = get_filpaths_pkl(os.path.join(dataset_path, 'train'))[:n_train + n_val]
     test_files = get_filpaths_pkl(os.path.join(dataset_path, 'test'))[:n_test]
     train_files, val_files = train_test_split(all_train_files, test_size=n_val)
     return [filelist_to_dataset(fl) for fl in [train_files, val_files, test_files]]
 
 
-def get_dataset(dataset_name, n_train, n_val, n_test):
+def get_dataset(dataset_name, n_train, n_val, n_test, pre_calc_embedd=False):
     """Checks if pre-processed (embeddings) dataset exists as pickle and loads as tf datasets,
     if not, check if files raw exists as txt and loads as in-memory lists"""
-    pkl_path = os.path.join(PKL_LOCATION, dataset_name)
-    txt_path = os.path.join(TXT_LOCATION, dataset_name)
-    if _check_datasert_dir(pkl_path):
-        return _prep_tf_dataset(pkl_path, n_train, n_val, n_test)
-    elif _check_datasert_dir(txt_path):
-        return _prep_txt_dataset(dataset_name, n_train, n_val, n_test)
+    base_path = TXT_LOCATION
+    load_func = _prep_txt_dataset
+    if pre_calc_embedd:
+        base_path = PKL_LOCATION
+        load_func = _prep_tf_dataset
+
+    path = os.path.join(base_path, dataset_name)
+    if _check_datasert_dir(path):
+        return load_func(dataset_name, n_train, n_val, n_test)

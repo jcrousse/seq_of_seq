@@ -11,7 +11,7 @@ nlp = spacy.load('en_trf_bertbaseuncased_lg')
 SOURCE_DATASET = "P4_from1200_vocab200_fromPNone_noextra"
 DATA_READER = DataReader(dataset=SOURCE_DATASET)
 DEST_PATH = "data/bert"
-MAX_OBS = 100
+MAX_OBS = 10
 
 # todo: create train, val, test datasets + read them for experiment training
 
@@ -35,7 +35,7 @@ def texts_embeddings(text, text_splitter=split_paragraphs, seq_len=4, sentence_l
 def obs_generator():
     while True:
         text, label = DATA_READER()
-        yield {'input': texts_embeddings(text), 'output': label, 'output_2': label}
+        yield ({'input': texts_embeddings(text)}, {'output': label, 'output_2': label})
 
 
 def get_pickle_dataset_generator(path):
@@ -58,8 +58,8 @@ if __name__ == '__main__':
             break
         with open(os.path.join(dataset_dir,  f'obs{i}.pkl'), 'wb') as f:
             pickle.dump(bert_encoding, f)
-    tf_dataset = tf.data.Dataset.from_generator(get_pickle_dataset_generator(dataset_dir), {'input': tf.float32,
-                                                                                            'output': tf.int32,
-                                                                                            'output_2': tf.int32})
+    tf_dataset = tf.data.Dataset.from_generator(get_pickle_dataset_generator(dataset_dir), ({'input': tf.float32},
+                                                                                            {'output': tf.int32,
+                                                                                            'output_2': tf.int32}))
     for item in tf_dataset:
         print(item)
