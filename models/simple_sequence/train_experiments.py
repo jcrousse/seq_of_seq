@@ -1,4 +1,4 @@
-from data_interface import DataReader
+from data_interface import DataReader, get_dataset
 from models.simple_sequence.experiment import Experiment
 from sklearn.model_selection import train_test_split
 
@@ -13,17 +13,19 @@ from preprocessing.text_preprocessing import split_paragraphs
 #  - Run train on floydhub?
 #  - "Cheat" with set of positive / negative sentences ?
 
-N_TEST = 500
-N_TRAIN = 1700
-N_VAL = 200
+N_TEST = 80
+N_TRAIN = 70
+N_VAL = 20
 
-DATASET = "P4_from1200_vocab200_fromPNone_noextra"
+DATASET_NAME = "P4_from1200_vocab200_fromPNone_noextra"
 
-test_texts, test_labels = DataReader(0.5, dataset=DATASET, subset='test').take(N_TEST)
+# test_texts, test_labels = DataReader(0.5, dataset=DATASET, subset='test').take(N_TEST)
+#
+# train_dr = DataReader(0.5, dataset=DATASET)
+# train_texts, train_labels = train_dr.take(N_TRAIN + N_VAL)
+# train_texts, val_texts, train_labels, val_labels = train_test_split(train_texts, train_labels, test_size=N_VAL)
 
-train_dr = DataReader(0.5, dataset=DATASET)
-train_texts, train_labels = train_dr.take(N_TRAIN + N_VAL)
-train_texts, val_texts, train_labels, val_labels = train_test_split(train_texts, train_labels, test_size=N_VAL)
+datasets = get_dataset(DATASET_NAME, N_TRAIN, N_VAL, N_TEST)
 
 experiments = {
     # 'fc_200': {'seq_len': 200},
@@ -50,10 +52,13 @@ experiments = {
     #                    'concat_outputs': True},
     # 'score300_15': {'model_name': 'score', 'split_sentences': True, 'seq_len': 300, 'sent_len': 15, 'epochs': 50,},
     "testus": {'model_name': 'l_score', 'split_sentences': True, 'sent_splitter': split_paragraphs, 'sent_len': 200,
-               'seq_len': 1200, 'batch_size': 512, 'concat_outputs': True, 'lstm_units_1': 32},
+               'seq_len': 1200, 'batch_size': 512, 'concat_outputs': True, 'lstm_units_1': 32,
+               'embedding_size': 768, 'pre_embedded': True},
 }
+
+# todo: think of a neat way to automatically pass the right embedding size if using pre-trained embeddings
 
 for experiment in experiments:
     name, config = experiment, experiments[experiment]
     model = Experiment(name, overwrite=True, **config)
-    model.train(train_texts, val_texts, test_texts, train_labels, val_labels, test_labels)
+    model.train(datasets)

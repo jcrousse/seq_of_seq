@@ -66,16 +66,22 @@ class Experiment:
         early_stop = tf.keras.callbacks.EarlyStopping(monitor=monitor, min_delta=0.01, patience=15)
         return [tensorboard, save_model, early_stop]
 
-    def train(self, x_train, x_val, x_test, y_train, y_val, y_test, epochs=None):
+    def train(self, datasets, epochs=None):
+        if isinstance(datasets[0], tuple):
+            self._train_from_mem(datasets, epochs)
+        else:
+            self._train_from_tfdatasets(datasets, epochs)
 
-        texts = [x_train, x_val, x_test]
-        labels = [y_train, y_val, y_test]
+    def _train_from_mem(self, dataset_items, epochs=None):
+
+        texts = [dataset_items[0][0], dataset_items[1][0], dataset_items[2][0]]
+        labels = [dataset_items[0][1], dataset_items[1][1], dataset_items[2][1]]
         if self.config.get("concat_outputs", False):
             n_outputs = len(self.keras_model.layers[-1].input)
             # labels = [[e for sublist in [[i] * n_outputs for i in y] for e in sublist] for y in labels]
             labels = [[[e, e] for e in sublist] for sublist in labels]
 
-        self.tokenizer = load_or_fit_tokenizer(self.path, self.config['vocab_size'], corpus=x_train)
+        self.tokenizer = load_or_fit_tokenizer(self.path, self.config['vocab_size'], corpus=dataset_items[0][0])
         padded_sequences = [get_padded_sequences(t, self.tokenizer,
                                                  seq_len=self.config['seq_len'],
                                                  split_sentences=self.config['split_sentences'],
@@ -87,9 +93,9 @@ class Experiment:
             out_shape=self.out_shape)
                     for x, y in zip(padded_sequences, labels)]
 
-        self.train_from_datasets(datasets, epochs=epochs)
+        self._train_from_tfdatasets(datasets, epochs=epochs)
 
-    def train_from_datasets(self, dataset_list, epochs=None):
+    def _train_from_tfdatasets(self, dataset_list, epochs=None):
         """
         train from a list of three TF datasets: train, val and test
         """

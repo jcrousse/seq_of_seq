@@ -1,0 +1,68 @@
+import os
+import warnings
+import pickle
+
+import tensorflow as tf
+
+from data_interface import DataReader
+from sklearn.model_selection import train_test_split
+
+PKL_LOCATION = 'data/bert'
+TXT_LOCATION = 'data/aclImdb_v1'
+EXP_DIRS = ["train", "test"]
+
+
+def _check_sub_dir(path):
+    if all([os.path.isdir(os.path.join(path, d)) for d in EXP_DIRS]):
+        return True
+    else:
+        warnings.warn(f"{path} exists but does not contain {EXP_DIRS} subfolders")
+        return False
+
+
+def _check_datasert_dir(path):
+    return True if os.path.isdir(path) and _check_sub_dir(path) else False
+
+
+def _prep_txt_dataset(dataset_name, n_train, n_val, n_test):
+    test_texts, test_labels = DataReader(0.5, dataset=dataset_name, subset='test').take(n_test)
+    train_dr = DataReader(0.5, dataset=dataset_name)
+    train_texts, train_labels = train_dr.take(n_train + n_val)
+    train_texts, val_texts, train_labels, val_labels = train_test_split(train_texts, train_labels, test_size=n_val)
+    return [(train_texts, train_labels), (val_texts, val_labels), (test_texts, test_labels)]
+
+
+def generator_factory(files_to_read):
+    def gn():
+        for file in files_to_read:
+            with open(file, 'rb') as rf:
+                yield pickle.load(rf)
+    return gn
+
+
+def get_filpaths_pkl(path):
+    return [os.path.join(path, f) for f in os.listdir(path) if os.path.splitext(f)[1] == '.pkl']
+
+
+def filelist_to_dataset(filelist):
+    return tf.data.Dataset.from_generator(generator_factory(filelist), {'input': tf.float32,
+                                                                        'output': tf.int32,
+                                                                        'output_2': tf.int32})
+
+
+def _prep_tf_dataset(dataset_path, n_train, n_val, n_test):
+    all_train_files = get_filpaths_pkl(os.path.join(dataset_path, 'train'))[:n_train + n_val]
+    test_files = get_filpaths_pkl(os.path.join(dataset_path, 'test'))[:n_test]
+    train_files, val_files = train_test_split(all_train_files, test_size=n_val)
+    return [filelist_to_dataset(fl) for fl in [train_files, val_files, test_files]]
+
+
+def get_dataset(dataset_name, n_train, n_val, n_test):
+    """Checks if pre-processed (embeddings) dataset exists as pickle and loads as tf datasets,
+    if not, check if files raw exists as txt and loads as in-memory lists"""
+    pkl_path = os.path.join(PKL_LOCATION, dataset_name)
+    txt_path = os.path.join(TXT_LOCATION, dataset_name)
+    if _check_datasert_dir(pkl_path):
+        return _prep_tf_dataset(pkl_path, n_train, n_val, n_test)
+    elif _check_datasert_dir(txt_path):
+        return _prep_txt_dataset(dataset_name, n_train, n_val, n_test)

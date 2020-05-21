@@ -25,7 +25,7 @@ def sentence_embedding(text, text_splitter=split_paragraphs, sentence_len=200, e
 
 def texts_embeddings(text, text_splitter=split_paragraphs, seq_len=4, sentence_len=200, embed_len=768):
     padded_sentences = sentence_embedding(text, text_splitter=text_splitter, sentence_len=sentence_len,
-                                           embed_len=embed_len)
+                                          embed_len=embed_len)
     padded_text = tf.keras.preprocessing.sequence.pad_sequences([padded_sentences], maxlen=seq_len, dtype="float32",
                                                                 value=np.zeros((sentence_len, embed_len)),
                                                                 padding='post')[0]
@@ -53,11 +53,11 @@ if __name__ == '__main__':
     dataset_dir = os.path.join(DEST_PATH, SOURCE_DATASET)
     if not os.path.isdir(dataset_dir):
         os.mkdir(dataset_dir)
-    for i, array_ducul in enumerate(obs_generator()):
+    for i, bert_encoding in enumerate(obs_generator()):
         if i > MAX_OBS:
             break
         with open(os.path.join(dataset_dir,  f'obs{i}.pkl'), 'wb') as f:
-            pickle.dump(array_ducul, f)
+            pickle.dump(bert_encoding, f)
     tf_dataset = tf.data.Dataset.from_generator(get_pickle_dataset_generator(dataset_dir), {'input': tf.float32,
                                                                                             'output': tf.int32,
                                                                                             'output_2': tf.int32})

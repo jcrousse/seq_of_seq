@@ -90,6 +90,7 @@ def get_learned_scores(**kwargs):
     sent_len = kwargs.get('sent_len')
     embed_size = kwargs.get('embedding_size')
     seq_len = kwargs.get("seq_len")
+    pre_embedded = kwargs.get("pre_embedded", False)
     assert seq_len % sent_len == 0, "sequence length must be a multiple of sentence length"
     sent_per_obs = seq_len // sent_len
 
@@ -98,8 +99,12 @@ def get_learned_scores(**kwargs):
     lstm_units_1 = kwargs.get('lstm_units_1', 16)
     lstm_units_2 = kwargs.get('lstm_cells', 16)
 
-    inputs = tf.keras.layers.Input(shape=(None,), name="input")
-    embedded = tf.keras.layers.Embedding(kwargs.get('vocab_size'), embed_size)(inputs)
+    if pre_embedded:
+        inputs = tf.keras.layers.Input(shape=(None, seq_len, sent_len, embed_size), name="input")
+        embedded = tf.reshape(inputs, (-1, seq_len * sent_len, embed_size))
+    else:
+        inputs = tf.keras.layers.Input(shape=(None,), name="input")
+        embedded = tf.keras.layers.Embedding(kwargs.get('vocab_size'), embed_size)(inputs)
     reshaped = tf.reshape(embedded, (-1, sent_len, embed_size))
     lstm_level1 = tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(lstm_units_1))(reshaped)
 
