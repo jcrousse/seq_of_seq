@@ -1,7 +1,5 @@
 import os
 
-BASE_PATH = 'data/aclImdb_v1'
-
 DIR_LABEL_MAP = {
     'pos': 1,
     'neg': 0

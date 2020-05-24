@@ -1,6 +1,6 @@
 import os
 from random import shuffle
-from config.config import DIR_LABEL_MAP, BASE_PATH
+from config.config import DIR_LABEL_MAP, TXT_LOCATION
 
 
 class DataReader:
@@ -22,7 +22,7 @@ class DataReader:
         self.next_labels_vector = []
         self.update_next_labels()
 
-        self.data_dirs = {v: os.path.join(BASE_PATH, dataset, subset, k) for k, v in DIR_LABEL_MAP.items()}
+        self.data_dirs = {v: os.path.join(TXT_LOCATION, dataset, subset, k) for k, v in DIR_LABEL_MAP.items()}
 
         self.example_files = {
             label: iter([os.path.join(self.data_dirs[label], str(e)) for e in os.listdir(self.data_dirs[label])])
