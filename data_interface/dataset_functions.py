@@ -3,13 +3,10 @@ import warnings
 import pickle
 
 import tensorflow as tf
-
-from data_interface import DataReader
 from sklearn.model_selection import train_test_split
 
-PKL_LOCATION = 'data/bert'
-TXT_LOCATION = 'data/aclImdb_v1'
-EXP_DIRS = ["train", "test"]
+from data_interface import DataReader
+from config.config import PKL_LOCATION, TXT_LOCATION, EXP_DIRS
 
 
 def _check_sub_dir(path):

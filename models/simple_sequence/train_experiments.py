@@ -13,11 +13,11 @@ from preprocessing.text_preprocessing import split_paragraphs
 #  - Run train on floydhub?
 #  - "Cheat" with set of positive / negative sentences ?
 
-N_TEST = 80
-N_TRAIN = 70
-N_VAL = 20
+N_TEST = 400
+N_TRAIN = 6000
+N_VAL = 2000
 
-PRE_CALC_EMBEDD = False
+PRE_CALC_EMBEDD = True
 DATASET_NAME = "P4_from1200_vocab200_fromPNone_noextra"
 
 # test_texts, test_labels = DataReader(0.5, dataset=DATASET, subset='test').take(N_TEST)
@@ -53,7 +53,7 @@ experiments = {
     #                    'concat_outputs': True},
     # 'score300_15': {'model_name': 'score', 'split_sentences': True, 'seq_len': 300, 'sent_len': 15, 'epochs': 50,},
     "testus": {'model_name': 'l_score', 'split_sentences': True, 'sent_splitter': split_paragraphs, 'sent_len': 200,
-               'seq_len': 1200, 'batch_size': 512, 'concat_outputs': True, 'lstm_units_1': 32,
+               'seq_len': 800, 'batch_size': 256, 'concat_outputs': True, 'lstm_units_1': 16,
                'embedding_size': 768, 'pre_embedded': PRE_CALC_EMBEDD},
 }
 
@@ -65,3 +65,4 @@ for experiment in experiments:
     name, config = experiment, experiments[experiment]
     model = Experiment(name, overwrite=True, **config)
     model.train(datasets)
+_lg

@@ -101,7 +101,7 @@ def get_learned_scores(**kwargs):
 
     if pre_embedded:
         inputs = tf.keras.layers.Input(shape=(None, ), name="input")
-        embedded = tf.reshape(inputs, (-1, seq_len * sent_len, embed_size))
+        embedded = tf.reshape(inputs, (-1, 1200, 768))
     else:
         inputs = tf.keras.layers.Input(shape=(None,), name="input")
         embedded = tf.keras.layers.Embedding(kwargs.get('vocab_size'), embed_size)(inputs)

@@ -1,0 +1,3 @@
+from data_interface.generate_bert_dataset import generate_dataset
+
+generate_dataset("P4_from1200_vocab200_fromPNone_noextra", 10000)
