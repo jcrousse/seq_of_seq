@@ -53,8 +53,8 @@ experiments = {
     #                    'concat_outputs': True},
     # 'score300_15': {'model_name': 'score', 'split_sentences': True, 'seq_len': 300, 'sent_len': 15, 'epochs': 50,},
     "testus": {'model_name': 'l_score', 'split_sentences': True, 'sent_splitter': split_paragraphs, 'sent_len': 200,
-               'seq_len': 800, 'batch_size': 256, 'concat_outputs': True, 'lstm_units_1': 16,
-               'embedding_size': 768, 'pre_embedded': PRE_CALC_EMBEDD},
+               'seq_len': 800, 'batch_size': 32, 'concat_outputs': True, 'lstm_units_1': 16,
+               'embedding_size': 768, 'pre_embedded': PRE_CALC_EMBEDD, 'preprocess_f': 'bert'},
 }
 
 # todo: think of a neat way to automatically pass the right embedding size if using pre-trained embeddings
@@ -65,4 +65,3 @@ for experiment in experiments:
     name, config = experiment, experiments[experiment]
     model = Experiment(name, overwrite=True, **config)
     model.train(datasets)
-_lg

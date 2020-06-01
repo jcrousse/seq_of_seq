@@ -15,15 +15,15 @@ EXP_DIRS = ["train", "test"]
 FLOYDHUB = "local"
 if not os.path.isfile('.iamlocal'):
     FLOYDHUB = "remote"
-elif  os.path.isfile('.floydwks'):
+elif os.path.isfile('floydwks'):
     FLOYDHUB = "workspace"
 
 if FLOYDHUB == 'local':
-    PKL_LOCATION = 'data/bert'
+    PKL_LOCATION = '/media/john/Johnny-nomad/Work/sos/bert_dataset'
     TXT_LOCATION = 'data/aclImdb_v1'
 elif FLOYDHUB == "remote":
-    PKL_LOCATION = 'imdb_bert'
-    TXT_LOCATION = 'imdb_txt'
+    PKL_LOCATION = 'imdb_bert/1'
+    TXT_LOCATION = 'imdb_txt/1'
 elif FLOYDHUB == "workspace":
     PKL_LOCATION = '/floyd/input/imdb_bert1'
     TXT_LOCATION = '/floyd/input/imdb_txt_sets'

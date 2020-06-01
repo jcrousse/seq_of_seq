@@ -7,9 +7,9 @@ from data_interface import DataReader
 from models.simple_sequence.experiment import Experiment
 from utils.write_to_html import write_to_html
 
-MODELS_LOAD = ['testus']
+MODELS_LOAD = ['el_berto']
 OVERWRITE = True
-NUM_PRED = 100
+NUM_PRED = 30
 
 DATASET = "P4_from1200_vocab200_fromPNone_noextra"
 
@@ -34,6 +34,6 @@ if __name__ == '__main__':
         bin_pred = [1 if e > 0 else 0 for e in logits]
 
         for idx, scores, sents, diff, pred, actual in zip(range(len(sentences)), relevance, sentences, diff_sq_round, bin_pred,
-                                            predict_labels):
+                                                          predict_labels):
             write_to_html(sents, scores, f"{diff}_ex{idx}_act{actual}_pred{pred}.html", out_dir=path)
             # print(f"relevance: {score}, sentence: {sent}")

@@ -7,6 +7,7 @@ import tensorflow as tf
 from config.config import TB_LOGS, MODEL_DIR, MODEL_CONF
 from models.simple_sequence.keras_models import model_map
 from preprocessing import load_or_fit_tokenizer, get_dataset, get_padded_sequences, load_tokenizer
+from data_interface.generate_bert_dataset import bertize_texts
 
 
 class Experiment:
@@ -17,12 +18,14 @@ class Experiment:
         self.path = Path(MODEL_DIR) / name
         self.log_path = Path(TB_LOGS) / self.name
         self.tokenizer = None
+        tokenizer_path = self.path / 'tokenizer.json'
 
         if self.path.exists() and not overwrite:
             """ Loading model when already exists"""
             with open(self.path / MODEL_CONF, 'rb') as f:
                 kwargs = pickle.load(f)
-            self.tokenizer = load_tokenizer(self.path / 'tokenizer.json')  # refactor this
+            if tokenizer_path.exists():
+                self.tokenizer = load_tokenizer(tokenizer_path)
             self.keras_model = model_map[kwargs['model_name']](**kwargs)
             latest = tf.train.latest_checkpoint(str(self.path))
             self.keras_model.load_weights(latest)
@@ -38,6 +41,7 @@ class Experiment:
                 pickle.dump(kwargs, f)
 
         self.config = kwargs
+        self.preprocess_func = kwargs.get('preprocess_f', 'default')
 
         output_layer = self.keras_model.output
         if isinstance(output_layer, list):
@@ -68,7 +72,7 @@ class Experiment:
 
     def train(self, datasets, epochs=None):
         if isinstance(datasets[0], tuple):
-            prep_data = self._format_mem_data(datasets, epochs)
+            prep_data = self._format_mem_data(datasets)
         else:
             prep_data = datasets
         concat_output = self.config.get("concat_outputs", False)
@@ -80,28 +84,20 @@ class Experiment:
                                 out_shape=out_shape) for dt in prep_data]
         self._train_from_tfdatasets(datasets, epochs)
 
-    def _format_mem_data(self, dataset_items, epochs=None):
-
+    def _format_mem_data(self, dataset_items):
         texts = [dataset_items[0][0], dataset_items[1][0], dataset_items[2][0]]
         labels = [dataset_items[0][1], dataset_items[1][1], dataset_items[2][1]]
-        # if self.config.get("concat_outputs", False):
-        #     n_outputs = len(self.keras_model.layers[-1].input)
-        #     labels = [[[e] * n_outputs for e in sublist] for sublist in labels]
 
-        self.tokenizer = load_or_fit_tokenizer(self.path, self.config['vocab_size'], corpus=dataset_items[0][0])
-        padded_sequences = [get_padded_sequences(t, self.tokenizer,
-                                                 seq_len=self.config['seq_len'],
-                                                 split_sentences=self.config['split_sentences'],
-                                                 sent_len=self.config['sent_len'])[0] for t in texts]
+        if self.preprocess_func == 'default':
+            self.tokenizer = load_or_fit_tokenizer(self.path, self.config['vocab_size'], corpus=dataset_items[0][0])
+            padded_sequences = [get_padded_sequences(t, self.tokenizer,
+                                                     seq_len=self.config['seq_len'],
+                                                     split_sentences=self.config['split_sentences'],
+                                                     sent_len=self.config['sent_len'])[0] for t in texts]
+        else:
+            padded_sequences = bertize_texts(texts)
 
-        # datasets = [get_dataset((
-        #     {"input": x},
-        #     {"output": y, "output_2": y}),
-        #     batch_size=self.config['batch_size'],
-        #     out_shape=self.out_shape)
-        #             for x, y in zip(padded_sequences, labels)]
         return [({"input": x}, {"output": y, "output_2": y}) for x, y in zip(padded_sequences, labels)]
-
 
     def _train_from_tfdatasets(self, dataset_list, epochs=None):
         """
@@ -118,14 +114,23 @@ class Experiment:
         _ = self.keras_model.evaluate(dataset_list[2], verbose=2)
 
     def predict(self, predict_data, return_sentences=False):
-        padded_seq, sentences = get_padded_sequences(predict_data, self.tokenizer, **self.config)
+        # todo: Option to train/predict directly from text, with preprocessing_function = bert
+        if self.preprocess_func == 'bert':
+            padded_seq, sentences = bertize_texts(predict_data)
+        else:
+            padded_seq, sentences = get_padded_sequences(predict_data, self.tokenizer, **self.config)
         if return_sentences:
             return self.keras_model.predict(padded_seq), sentences
         else:
             return self.keras_model.predict(padded_seq)
 
     def predict_layer(self, predict_data, layer="relevance_reshaped"):
-        padded_seq, _ = get_padded_sequences(predict_data, self.tokenizer, **self.config)
+        """ todo: refactor this, two predict functions are too similar
+             and pre-processing is done twice on the same data"""
+        if self.preprocess_func == 'bert':
+            padded_seq, _ = bertize_texts(predict_data)  #
+        else:
+            padded_seq, _ = get_padded_sequences(predict_data, self.tokenizer, **self.config)
         partial_model = tf.keras.Model(
             inputs=self.keras_model.input,
             outputs=self.keras_model.get_layer(layer).output)
