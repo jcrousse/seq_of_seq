@@ -9,7 +9,8 @@ from models.baseline_tfidf.tfidf_svm import tfidf_svm
 
 n_test = 10000
 
-test_text, test_labels = DataReader(0.5, subset='test').take(n_test)
+DATASET = "P4_from1200_vocab200_fromPNone_noextra"
+test_text, test_labels = DataReader(0.5, dataset=DATASET, subset='test').take(n_test)
 
 s_test = set(test_text)
 test_dataset = [simple_preprocess(t) for t in tqdm(test_text)]
@@ -17,7 +18,7 @@ test_dataset = [simple_preprocess(t) for t in tqdm(test_text)]
 accuracy_per_step_svm = []
 steps = range(500, 10000, 500)
 for n_obs in steps:
-    texts, labels = DataReader(0.5).take(n_obs)
+    texts, labels = DataReader(0.5, dataset=DATASET).take(n_obs)
 
     s_train = set(texts)
     print(f"train/test overlaps: {len(s_train & s_test)}")  # todo: ensure 0 overlaps
@@ -37,4 +38,4 @@ df_plot = pd.DataFrame(data={'svm': accuracy_per_step_svm, 'training_examples': 
 sns.set()
 sns_plot = sns.relplot(data=pd.melt(df_plot, ['training_examples']), x='training_examples',
                        y='value', hue='variable', kind="line")
-sns_plot.savefig("baseline_per_examples.png")
+sns_plot.savefig("baseline_per_examples_polluted.png")

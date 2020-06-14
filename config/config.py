@@ -23,7 +23,7 @@ if FLOYDHUB == 'local':
     TXT_LOCATION = 'data/aclImdb_v1'
 elif FLOYDHUB == "remote":
     PKL_LOCATION = 'imdb_bert/1'
-    TXT_LOCATION = 'imdb_txt/1'
+    TXT_LOCATION = '/floyd/input/imdb_txt'
 elif FLOYDHUB == "workspace":
     PKL_LOCATION = '/floyd/input/imdb_bert1'
     TXT_LOCATION = '/floyd/input/imdb_txt_sets'

@@ -3,6 +3,7 @@ from shutil import rmtree
 from pathlib import Path
 
 import tensorflow as tf
+from wandb.keras import WandbCallback
 
 from config.config import TB_LOGS, MODEL_DIR, MODEL_CONF
 from models.simple_sequence.keras_models import model_map
@@ -10,8 +11,15 @@ from preprocessing import load_or_fit_tokenizer, get_dataset, get_padded_sequenc
 from data_interface.generate_bert_dataset import bertize_texts
 
 
+concat_map = {
+    'attention': False,
+    'sos': False,
+    'combined': True
+}
+
+
 class Experiment:
-    def __init__(self, name, model_name='fully_connected', batch_size=256, seq_len=200, vocab_size=10000,
+    def __init__(self, name, model_name='fully_connected', batch_size=256, num_sent=10, vocab_size=10000,
                  epochs=100, embedding_size=16, split_sentences=False, sent_len=20, overwrite=False, **kwargs):
 
         self.name = name
@@ -68,15 +76,20 @@ class Experiment:
                                                         monitor=monitor,
                                                         save_weights_only=True)
         early_stop = tf.keras.callbacks.EarlyStopping(monitor=monitor, min_delta=0.01, patience=15)
-        return [tensorboard, save_model, early_stop]
+        wandb = WandbCallback()
+        return [tensorboard, save_model, early_stop, wandb]
 
     def train(self, datasets, epochs=None):
         if isinstance(datasets[0], tuple):
             prep_data = self._format_mem_data(datasets)
         else:
             prep_data = datasets
-        concat_output = self.config.get("concat_outputs", False)
-        n_outputs = len(self.keras_model.layers[-1].input)
+        concat_output = concat_map[self.config.get("model_type")]
+        n_outputs = 1
+        try:
+            n_outputs = len(self.keras_model.layers[-1].input)
+        except TypeError:
+            pass
         out_shape = self.out_shape
         datasets = [get_dataset(dt, batch_size=self.config['batch_size'],
                                 concat_outputs=concat_output,
@@ -91,7 +104,7 @@ class Experiment:
         if self.preprocess_func == 'default':
             self.tokenizer = load_or_fit_tokenizer(self.path, self.config['vocab_size'], corpus=dataset_items[0][0])
             padded_sequences = [get_padded_sequences(t, self.tokenizer,
-                                                     seq_len=self.config['seq_len'],
+                                                     seq_len=self.config['sent_len'] * self.config['num_sent'],
                                                      split_sentences=self.config['split_sentences'],
                                                      sent_len=self.config['sent_len'])[0] for t in texts]
         else:

@@ -7,11 +7,11 @@ from data_interface import DataReader
 from models.simple_sequence.experiment import Experiment
 from utils.write_to_html import write_to_html
 
-MODELS_LOAD = ['el_berto']
+MODELS_LOAD = ['l_concat_200_20']
 OVERWRITE = True
 NUM_PRED = 30
 
-DATASET = "P4_from1200_vocab200_fromPNone_noextra"
+DATASET = "aclImdb"  # "P4_from1200_vocab200_fromPNone_noextra"
 
 if __name__ == '__main__':
 

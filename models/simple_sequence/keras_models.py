@@ -83,18 +83,22 @@ def get_sos_score(**kwargs):
 
 def get_learned_scores(**kwargs):
     """
-    "scores" each sentence, then multiply by score before next squence layer
-    :param kwargs:
-    :return: keras model
+    scores each sentence, then multiply by score before next sequence layer.
+    :Keyword Arguments:
+        * sent_len (int) Sentence length
+        * embedding_size (int) word embedding length
+        * seq_len (int) length of overall sequence, equal to number of sentences x number of words per sentence
+        * pre_embedded (bool) True if input is already vectors of word embeddings, false if tokens to be embedded
+        * concat_outputs (bool) True for a model with two similar outputs (2 level sequence model), False for
+        a single output attention model (weighted average of sentences)
+    :param :  (int)
     """
     sent_len = kwargs.get('sent_len')
     embed_size = kwargs.get('embedding_size')
-    seq_len = kwargs.get("seq_len")
+    sent_per_obs = kwargs.get('num_sent')
     pre_embedded = kwargs.get("pre_embedded", False)
-    assert seq_len % sent_len == 0, "sequence length must be a multiple of sentence length"
-    sent_per_obs = seq_len // sent_len
 
-    concat_outputs = kwargs.get("concat_outputs", False)
+    model_type = kwargs.get("model_type", False)
 
     lstm_units_1 = kwargs.get('lstm_units_1', 16)
     lstm_units_2 = kwargs.get('lstm_cells', 16)
@@ -118,15 +122,16 @@ def get_learned_scores(**kwargs):
 
     lstm_level2 = tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(lstm_units_2))(reshaped_level2)
 
-    if concat_outputs:
-        classifier = tf.keras.layers.Dense(1)(lstm_level2)
-        classifier2 = tf.keras.layers.Dense(1)(w_average)
+    classifier = tf.keras.layers.Dense(1)(lstm_level2)
+    classifier2 = tf.keras.layers.Dense(1)(w_average)
+    if model_type == 'attention':
+        outputs = classifier2
+    elif model_type == 'sos':
+        outputs = classifier
+    elif model_type == "combined":
         outputs = tf.keras.layers.concatenate([classifier, classifier2], name="output")
     else:
-        classifier = tf.keras.layers.Dense(1, name="output")(lstm_level2)
-        classifier2 = tf.keras.layers.Dense(1, name="output_2")(w_average)
-
-        outputs = [classifier, classifier2]
+        raise ValueError(f"unexpected value for model_type: {model_type}")
 
     model = tf.keras.Model(inputs=inputs, outputs=outputs)
     return model

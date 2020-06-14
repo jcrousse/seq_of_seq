@@ -18,3 +18,4 @@ html_out
 saved_models
 tests
 tensorboard_logs
+wandb

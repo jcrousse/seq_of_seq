@@ -67,7 +67,7 @@ def load_or_fit_tokenizer(tokenizer_dir, vocab_size, corpus=None, **_):
     return tokenizer
 
 
-def get_padded_sequences(texts, tokenizer, seq_len=200, split_sentences=False, sent_len=20,
+def get_padded_sequences(texts, tokenizer, seq_len, sent_len, split_sentences=False,
                          sent_splitter=split_all_sentences, **_):
     if split_sentences:
         sentences = [sent_splitter(t) for t in texts]
