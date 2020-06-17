@@ -122,13 +122,13 @@ def get_learned_scores(**kwargs):
 
     lstm_level2 = tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(lstm_units_2))(reshaped_level2)
 
-    classifier = tf.keras.layers.Dense(1)(lstm_level2)
-    classifier2 = tf.keras.layers.Dense(1)(w_average)
     if model_type == 'attention':
-        outputs = classifier2
+        outputs = tf.keras.layers.Dense(1, name="output")(w_average)
     elif model_type == 'sos':
-        outputs = classifier
+        outputs = tf.keras.layers.Dense(1, name="output")(lstm_level2)
     elif model_type == "combined":
+        classifier = tf.keras.layers.Dense(1)(lstm_level2)
+        classifier2 = tf.keras.layers.Dense(1)(w_average)
         outputs = tf.keras.layers.concatenate([classifier, classifier2], name="output")
     else:
         raise ValueError(f"unexpected value for model_type: {model_type}")

@@ -19,7 +19,7 @@ concat_map = {
 
 
 class Experiment:
-    def __init__(self, name, model_name='fully_connected', batch_size=256, num_sent=10, vocab_size=10000,
+    def __init__(self, name, model_name='fully_connected', batch_size=128, num_sent=10, vocab_size=10000,
                  epochs=100, embedding_size=16, split_sentences=False, sent_len=20, overwrite=False, **kwargs):
 
         self.name = name
@@ -76,15 +76,15 @@ class Experiment:
                                                         monitor=monitor,
                                                         save_weights_only=True)
         early_stop = tf.keras.callbacks.EarlyStopping(monitor=monitor, min_delta=0.01, patience=15)
-        wandb = WandbCallback()
+        wandb = WandbCallback(monitor="val_accuracy")
         return [tensorboard, save_model, early_stop, wandb]
 
     def train(self, datasets, epochs=None):
+        concat_output = concat_map[self.config.get("model_type")]
         if isinstance(datasets[0], tuple):
-            prep_data = self._format_mem_data(datasets)
+            prep_data = self._format_mem_data(datasets, concat_output)
         else:
             prep_data = datasets
-        concat_output = concat_map[self.config.get("model_type")]
         n_outputs = 1
         try:
             n_outputs = len(self.keras_model.layers[-1].input)
@@ -97,7 +97,7 @@ class Experiment:
                                 out_shape=out_shape) for dt in prep_data]
         self._train_from_tfdatasets(datasets, epochs)
 
-    def _format_mem_data(self, dataset_items):
+    def _format_mem_data(self, dataset_items, concat_outputs):
         texts = [dataset_items[0][0], dataset_items[1][0], dataset_items[2][0]]
         labels = [dataset_items[0][1], dataset_items[1][1], dataset_items[2][1]]
 
@@ -110,7 +110,10 @@ class Experiment:
         else:
             padded_sequences = bertize_texts(texts)
 
-        return [({"input": x}, {"output": y, "output_2": y}) for x, y in zip(padded_sequences, labels)]
+        if concat_outputs:
+            return [({"input": x}, {"output": y, "output_2": y}) for x, y in zip(padded_sequences, labels)]
+        else:
+            return [({"input": x}, {"output": y}) for x, y in zip(padded_sequences, labels)]
 
     def _train_from_tfdatasets(self, dataset_list, epochs=None):
         """

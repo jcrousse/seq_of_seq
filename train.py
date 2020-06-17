@@ -12,26 +12,43 @@ from models.simple_sequence.experiment import Experiment
 
 # Always applicable: Split sentences or split paragraphs (depends on model)
 
-train_examples = 5000
-N_VAL = 4000
-sent_len = 15
-num_sent = 20
-lstm_units_1 = 16
-vocab_size = 10000
+# train_examples = 15000
+# N_VAL = 4000
+# sent_len = 15
+# num_sent = 20
+# lstm_units_1 = 16
+# vocab_size = 15000
 PRE_CALC_EMBEDD = False
 dataset = "aclImdb"  # "P4_from1200_vocab200_fromPNone_noextra"
 model_type = "combined"  # attention, sos, combined
-embedding_size = 16
+# embedding_size = 16
+# batch_size = 128
+
+hparams = {
+    'model_name': 'l_score',
+    'train_examples': 15000,
+    'n_val': 4000,
+    'sent_len': 15,
+    'num_sent': 20,
+    'lstm_units_1': 16,
+    'vocab_size': 15000,
+    'embedding_size': 16,
+    'batch_size': 128,
+    'model_type': "attention"
+}
+wandb.init(config=hparams)
+config = wandb.config
+
 
 N_TEST = 400
 experiment_name = "test_wandb"
-wandb.init(project="sos", sync_tensorboard=True)
+wandb.init(project="sos")
 
-model_type_map = {
-    0: "attention",
-    1: "sos",
-    2: "combined"
-}
+# model_type_map = {
+#     0: "attention",
+#     1: "sos",
+#     2: "combined"
+# }
 
 if __name__ == '__main__':
     long_options = ["sent_len:num_sent:vocab_size:batch_size:lstm_units_1:dataset:examples:model:word_embeddings:"]
@@ -40,30 +57,35 @@ if __name__ == '__main__':
     try:
         arguments, values = getopt.getopt(args, short_options, long_options)
     except getopt.error as err:
-        print(f"train.py -i <sent_len>")
+        print(f"train.py -s <sent_len>")
     else:
         for arg, val, current_value in arguments:
             if arg in ("-s", "--sent_len"):
-                sent_len = int(val)
+                hparams['sent_len'] = int(val)
             elif arg in ("-n", "--num_sent"):
-                num_sent = int(val)
+                hparams['num_sent'] = int(val)
             elif arg in ("-v", "--vocab_size"):
-                vocab_size = int(val)
+                hparams['vocab_size'] = int(val)
+            elif arg in ("-b", "--batch_size"):
+                hparams['batch_size'] = int(val)
             elif arg in ("-l", "--lstm_units_1"):
-                lstm_units_1 = int(val)
+                hparams['lstm_units_1'] = int(val)
             elif arg in ("-d", "--dataset"):
-                dataset = int(val)
+                hparams['dataset'] = int(val)
             elif arg in ("-e", "--examples"):
-                train_examples = int(val)
-            elif arg in ("-m", "--model"):
-                model_type = model_type_map[int(val)]
+                hparams['train_examples'] = int(val)
+            # elif arg in ("-m", "--model"):
+            #     hparams['model_type'] = model_type_map[int(val)]
             elif arg in ("-w", "--word_embeddings"):
                 # change here for bert embeddings
-                embedding_size = int(val)
-    model_config = {
-        'epochs': 20, 'concat_outputs': True, 'model_name': "l_score", 'sent_len': sent_len, 'num_sent': num_sent,
-        'vocab_size': vocab_size, 'lstm_units_1': lstm_units_1, 'model_type': model_type}
-    datasets = get_dataset(dataset, train_examples, N_VAL, N_TEST, PRE_CALC_EMBEDD)
+                hparams['embedding_size'] = int(val)
 
-    model = Experiment(experiment_name, overwrite=True, **model_config)
+        wandb.config.update(hparams)
+    print(config)
+    for k in hparams.keys():
+        hparams[k] = config[k]
+    print(hparams)
+    datasets = get_dataset(dataset, config['train_examples'], config['n_val'], N_TEST, PRE_CALC_EMBEDD)
+
+    model = Experiment(experiment_name, overwrite=True, **hparams)
     model.train(datasets)
