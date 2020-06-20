@@ -89,8 +89,6 @@ def get_learned_scores(**kwargs):
         * embedding_size (int) word embedding length
         * seq_len (int) length of overall sequence, equal to number of sentences x number of words per sentence
         * pre_embedded (bool) True if input is already vectors of word embeddings, false if tokens to be embedded
-        * concat_outputs (bool) True for a model with two similar outputs (2 level sequence model), False for
-        a single output attention model (weighted average of sentences)
     :param :  (int)
     """
     sent_len = kwargs.get('sent_len')
