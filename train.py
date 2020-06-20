@@ -19,7 +19,7 @@ from models.simple_sequence.experiment import Experiment
 # lstm_units_1 = 16
 # vocab_size = 15000
 PRE_CALC_EMBEDD = False
-dataset = "aclImdb"  # "P4_from1200_vocab200_fromPNone_noextra"
+dataset = "P4_from1200_vocab200_fromPNone_noextra"  # "P4_from1200_vocab200_fromPNone_noextra" "aclImdb"
 model_type = "combined"  # attention, sos, combined
 # embedding_size = 16
 # batch_size = 128
@@ -34,7 +34,8 @@ hparams = {
     'vocab_size': 15000,
     'embedding_size': 16,
     'batch_size': 128,
-    'model_type': "attention"
+    'model_type': "attention",
+    "split_sentences": "paragraph"
 }
 wandb.init(config=hparams)
 config = wandb.config

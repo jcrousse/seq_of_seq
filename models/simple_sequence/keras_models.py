@@ -98,7 +98,7 @@ def get_learned_scores(**kwargs):
     sent_per_obs = kwargs.get('num_sent')
     pre_embedded = kwargs.get("pre_embedded", False)
 
-    model_type = kwargs.get("model_type", False)
+    model_type = kwargs.get("model_type", 'attention')
 
     lstm_units_1 = kwargs.get('lstm_units_1', 16)
     lstm_units_2 = kwargs.get('lstm_cells', 16)

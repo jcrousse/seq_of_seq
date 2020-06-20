@@ -8,8 +8,8 @@ from wandb.keras import WandbCallback
 from config.config import TB_LOGS, MODEL_DIR, MODEL_CONF
 from models.simple_sequence.keras_models import model_map
 from preprocessing import load_or_fit_tokenizer, get_dataset, get_padded_sequences, load_tokenizer
-from data_interface.generate_bert_dataset import bertize_texts
-
+# from data_interface.generate_bert_dataset import bertize_texts
+from preprocessing.text_preprocessing import split_paragraphs, split_all_sentences
 
 concat_map = {
     'attention': False,
@@ -17,6 +17,10 @@ concat_map = {
     'combined': True
 }
 
+split_sentence_function = {
+    'sentences': split_all_sentences,
+    'paragraph': split_paragraphs
+}
 
 class Experiment:
     def __init__(self, name, model_name='fully_connected', batch_size=128, num_sent=10, vocab_size=10000,
@@ -103,10 +107,11 @@ class Experiment:
 
         if self.preprocess_func == 'default':
             self.tokenizer = load_or_fit_tokenizer(self.path, self.config['vocab_size'], corpus=dataset_items[0][0])
-            padded_sequences = [get_padded_sequences(t, self.tokenizer,
-                                                     seq_len=self.config['sent_len'] * self.config['num_sent'],
-                                                     split_sentences=self.config['split_sentences'],
-                                                     sent_len=self.config['sent_len'])[0] for t in texts]
+            padded_sequences = [
+                get_padded_sequences(t, self.tokenizer,
+                                     seq_len=self.config['sent_len'] * self.config['num_sent'],
+                                     split_sentences=split_sentence_function[self.config['split_sentences']],
+                                     sent_len=self.config['sent_len'])[0] for t in texts]
         else:
             padded_sequences = bertize_texts(texts)
 
