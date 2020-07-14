@@ -1,5 +1,6 @@
 import sys
 import getopt
+import os
 
 import wandb
 
@@ -8,10 +9,10 @@ from models.simple_sequence.experiment import Experiment
 
 # todo now:
 #   - Ensure working properly with BERT pre-processing (as embedding param),
-#   - Same but on FH
-
-# Always applicable: Split sentences or split paragraphs (depends on model)
-
+with open("secret_key.txt", 'r') as f:
+    content = f.read()
+    wandb_key = content.split('=')[1]
+os.system(f"wandb login {wandb_key}")
 # train_examples = 15000
 # N_VAL = 4000
 # sent_len = 15
@@ -19,37 +20,42 @@ from models.simple_sequence.experiment import Experiment
 # lstm_units_1 = 16
 # vocab_size = 15000
 PRE_CALC_EMBEDD = False
-dataset = "P4_from1200_vocab200_fromPNone_noextra"  # "P4_from1200_vocab200_fromPNone_noextra" "aclImdb"
+dataset = "aclImdb"  # "P4_from1200_vocab200_fromPNone_noextra" "aclImdb"
 model_type = "combined"  # attention, sos, combined
 # embedding_size = 16
 # batch_size = 128
 
 hparams = {
     'model_name': 'l_score',
-    'train_examples': 15000,
-    'n_val': 4000,
+    'train_examples': 200,
+    'n_val': 50,
     'sent_len': 15,
     'num_sent': 20,
     'lstm_units_1': 16,
     'vocab_size': 15000,
     'embedding_size': 16,
-    'batch_size': 128,
+    'batch_size': 16,
     'model_type': "attention",
-    "split_sentences": "paragraph"
+    "split_sentences": "sentences",
+    "preprocess_f": "default"
 }
-wandb.init(config=hparams)
+wandb.init(config=hparams, project="sos")
 config = wandb.config
-
 
 N_TEST = 400
 experiment_name = "test_wandb"
-wandb.init(project="sos")
 
 # model_type_map = {
 #     0: "attention",
 #     1: "sos",
 #     2: "combined"
 # }
+
+import tensorflow as tf
+gpus = tf.config.experimental.list_physical_devices('GPU')
+if gpus:
+    for gpu in gpus:
+        tf.config.experimental.set_memory_growth(gpu, True)
 
 if __name__ == '__main__':
     long_options = ["sent_len:num_sent:vocab_size:batch_size:lstm_units_1:dataset:examples:model:word_embeddings:"]

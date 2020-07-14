@@ -26,10 +26,10 @@ if is_using_gpu:
 
 
 def sentence_embedding(text, text_splitter=split_paragraphs, sentence_len=200, embed_len=768):
-    texts_splitted = text_splitter(text)
-    berted_sentences = [nlp(s).tensor for s in texts_splitted]
+    texts_split = text_splitter(text)
+    berted_sentences = [nlp(s).tensor for s in texts_split]
     return tf.keras.preprocessing.sequence.pad_sequences(berted_sentences, maxlen=sentence_len, dtype="float32",
-                                                         value=np.zeros(embed_len), padding="post"), texts_splitted
+                                                         value=np.zeros(embed_len), padding="post"), texts_split
 
 
 def texts_embeddings(text, text_splitter=split_paragraphs, seq_len=4, sentence_len=200, embed_len=768):

@@ -8,7 +8,7 @@ from wandb.keras import WandbCallback
 from config.config import TB_LOGS, MODEL_DIR, MODEL_CONF
 from models.simple_sequence.keras_models import model_map
 from preprocessing import load_or_fit_tokenizer, get_dataset, get_padded_sequences, load_tokenizer
-# from data_interface.generate_bert_dataset import bertize_texts
+from data_interface.generate_bert_dataset import bertize_texts
 from preprocessing.text_preprocessing import split_paragraphs, split_all_sentences
 
 concat_map = {
@@ -21,6 +21,7 @@ split_sentence_function = {
     'sentences': split_all_sentences,
     'paragraph': split_paragraphs
 }
+
 
 class Experiment:
     def __init__(self, name, model_name='fully_connected', batch_size=128, num_sent=10, vocab_size=10000,
@@ -113,12 +114,12 @@ class Experiment:
                                      split_sentences=split_sentence_function[self.config['split_sentences']],
                                      sent_len=self.config['sent_len'])[0] for t in texts]
         else:
-            padded_sequences = bertize_texts(texts)
+            padded_sequences = [bertize_texts(t) for t in texts]
 
-        if concat_outputs:
-            return [({"input": x}, {"output": y, "output_2": y}) for x, y in zip(padded_sequences, labels)]
-        else:
-            return [({"input": x}, {"output": y}) for x, y in zip(padded_sequences, labels)]
+        # if concat_outputs:
+        #     return [({"input": x}, {"output": y, "output_2": y}) for x, y in zip(padded_sequences, labels)]
+        # else:
+        return [({"input": x}, {"output": y}) for x, y in zip(padded_sequences, labels)]
 
     def _train_from_tfdatasets(self, dataset_list, epochs=None):
         """

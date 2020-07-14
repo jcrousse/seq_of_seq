@@ -99,11 +99,9 @@ def get_dataset(data, batch_size=256, concat_outputs=False, n_outputs=1, out_sha
         dataset = tf.data.Dataset.from_tensor_slices(data)
     if concat_outputs:
         dataset = dataset.map(lambda x, y: (x,
-                                            {'output': [y['output']] * n_outputs,
-                                             'output_2':  [y['output_2']] * n_outputs}))
+                                            {'output': [y['output']] * n_outputs}))
         batches = dataset.shuffle(1000).padded_batch(batch_size,
-                                                     padded_shapes=({'input': [None]}, {'output': out_s,
-                                                                                        'output_2': out_s}))
+                                                     padded_shapes=({'input': [None]}, {'output': out_s}))
     else:
         batches = dataset.shuffle(1000).padded_batch(batch_size,
                                                      padded_shapes=({'input': [None]}, {'output': out_s}))

@@ -33,7 +33,8 @@ def generator_factory(files_to_read):
     def gn():
         for file in files_to_read:
             with open(file, 'rb') as rf:
-                yield pickle.load(rf)
+                obs_data = pickle.load(rf)
+                yield {'input': obs_data['input'], 'output': obs_data['output']}
     return gn
 
 
@@ -43,8 +44,7 @@ def get_filpaths_pkl(path):
 
 def filelist_to_dataset(filelist):
     return tf.data.Dataset.from_generator(generator_factory(filelist), ({'input': tf.float32},
-                                                                        {'output': tf.int32,
-                                                                         'output_2': tf.int32}))
+                                                                        {'output': tf.int32}))
 
 
 def _prep_tf_dataset(dataset_name, n_train, n_val, n_test):
