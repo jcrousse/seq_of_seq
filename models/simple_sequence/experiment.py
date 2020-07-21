@@ -87,7 +87,7 @@ class Experiment:
     def train(self, datasets, epochs=None):
         concat_output = concat_map[self.config.get("model_type")]
         if isinstance(datasets[0], tuple):
-            prep_data = self._format_mem_data(datasets, concat_output)
+            prep_data = self._format_mem_data(datasets)
         else:
             prep_data = datasets
         n_outputs = 1
@@ -102,7 +102,7 @@ class Experiment:
                                 out_shape=out_shape) for dt in prep_data]
         self._train_from_tfdatasets(datasets, epochs)
 
-    def _format_mem_data(self, dataset_items, concat_outputs):
+    def _format_mem_data(self, dataset_items):
         texts = [dataset_items[0][0], dataset_items[1][0], dataset_items[2][0]]
         labels = [dataset_items[0][1], dataset_items[1][1], dataset_items[2][1]]
 
@@ -116,9 +116,6 @@ class Experiment:
         else:
             padded_sequences = [bertize_texts(t) for t in texts]
 
-        # if concat_outputs:
-        #     return [({"input": x}, {"output": y, "output_2": y}) for x, y in zip(padded_sequences, labels)]
-        # else:
         return [({"input": x}, {"output": y}) for x, y in zip(padded_sequences, labels)]
 
     def _train_from_tfdatasets(self, dataset_list, epochs=None):

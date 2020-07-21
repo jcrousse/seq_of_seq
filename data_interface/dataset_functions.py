@@ -34,7 +34,7 @@ def generator_factory(files_to_read):
         for file in files_to_read:
             with open(file, 'rb') as rf:
                 obs_data = pickle.load(rf)
-                yield {'input': obs_data['input'], 'output': obs_data['output']}
+                yield (obs_data[0], {'output': obs_data[1]['output']})
     return gn
 
 

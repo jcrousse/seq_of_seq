@@ -19,25 +19,26 @@ os.system(f"wandb login {wandb_key}")
 # num_sent = 20
 # lstm_units_1 = 16
 # vocab_size = 15000
-PRE_CALC_EMBEDD = False
-dataset = "aclImdb"  # "P4_from1200_vocab200_fromPNone_noextra" "aclImdb"
-model_type = "combined"  # attention, sos, combined
+dataset = "P4_from1200_vocab200_fromPNone_noextra"  # "P4_from1200_vocab200_fromPNone_noextra" "aclImdb"
 # embedding_size = 16
 # batch_size = 128
+READ_FROM_FILE = False
 
 hparams = {
     'model_name': 'l_score',
-    'train_examples': 200,
-    'n_val': 50,
+    'train_examples': 32,
+    'n_val': 16,
     'sent_len': 15,
     'num_sent': 20,
     'lstm_units_1': 16,
     'vocab_size': 15000,
     'embedding_size': 16,
     'batch_size': 16,
-    'model_type': "attention",
-    "split_sentences": "sentences",
-    "preprocess_f": "default"
+    'model_type': "combined",
+    "split_sentences": "paragraph",
+    "preprocess_f": "default",
+    "pre_embedded": False
+
 }
 wandb.init(config=hparams, project="sos")
 config = wandb.config
@@ -92,7 +93,7 @@ if __name__ == '__main__':
     for k in hparams.keys():
         hparams[k] = config[k]
     print(hparams)
-    datasets = get_dataset(dataset, config['train_examples'], config['n_val'], N_TEST, PRE_CALC_EMBEDD)
+    datasets = get_dataset(dataset, config['train_examples'], config['n_val'], N_TEST, READ_FROM_FILE)
 
     model = Experiment(experiment_name, overwrite=True, **hparams)
     model.train(datasets)

@@ -94,7 +94,8 @@ def get_learned_scores(**kwargs):
     sent_len = kwargs.get('sent_len')
     embed_size = kwargs.get('embedding_size')
     sent_per_obs = kwargs.get('num_sent')
-    pre_embedded = True if kwargs.get("preprocess_f", "default") == "default" else False
+    pre_embedded = kwargs.get("pre_embedded", False)
+
 
     model_type = kwargs.get("model_type", 'attention')
 

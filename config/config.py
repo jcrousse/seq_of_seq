@@ -19,7 +19,7 @@ elif os.path.isfile('floydwks'):
     FLOYDHUB = "workspace"
 
 if FLOYDHUB == 'local':
-    PKL_LOCATION = '/media/bert'
+    PKL_LOCATION = '/media/john/Johnny-nomad/Work/sos/bert_dataset'
     TXT_LOCATION = 'data/aclImdb_v1'
 elif FLOYDHUB == "remote":
     PKL_LOCATION = 'imdb_bert/1'
